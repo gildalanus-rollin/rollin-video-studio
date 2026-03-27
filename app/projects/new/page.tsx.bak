@@ -1,0 +1,89 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import TopNav from '@/components/TopNav'
+import { supabase } from '@/lib/supabase'
+
+export default function NewProjectPage() {
+  const router = useRouter()
+
+  const [title, setTitle] = useState('')
+  const [category, setCategory] = useState('General')
+  const [duration, setDuration] = useState(60)
+  const [format, setFormat] = useState('9:16')
+  const [loading, setLoading] = useState(false)
+
+  const handleCreate = async () => {
+    setLoading(true)
+
+    const { error } = await supabase.from('projects').insert([
+      {
+        title,
+        category,
+        status: 'draft',
+        duration_limit_seconds: duration,
+        output_format: format,
+      },
+    ])
+
+    setLoading(false)
+
+    if (error) {
+      alert('Error al crear proyecto')
+      return
+    }
+
+    router.push('/projects')
+    router.refresh()
+  }
+
+  return (
+    <main className="min-h-screen bg-neutral-100 text-neutral-900 p-10">
+      <div className="max-w-3xl mx-auto">
+        <TopNav />
+
+        <h1 className="text-3xl font-bold mb-6">Nuevo proyecto</h1>
+
+        <div className="bg-white rounded-2xl p-6 border space-y-4">
+          <input
+            placeholder="Título"
+            className="w-full border rounded-lg p-3"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <input
+            placeholder="Categoría"
+            className="w-full border rounded-lg p-3"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
+
+          <input
+            type="number"
+            placeholder="Duración"
+            className="w-full border rounded-lg p-3"
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+          />
+
+          <input
+            placeholder="Formato (ej: 9:16)"
+            className="w-full border rounded-lg p-3"
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+          />
+
+          <button
+            onClick={handleCreate}
+            disabled={loading}
+            className="bg-black text-white px-5 py-3 rounded-xl"
+          >
+            {loading ? 'Creando...' : 'Crear proyecto'}
+          </button>
+        </div>
+      </div>
+    </main>
+  )
+}
