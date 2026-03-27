@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -13,14 +15,26 @@ type Project = {
 };
 
 export default async function ProjectsPage() {
-  const { data, error } = await supabase
-    .from("projects")
-    .select(
-      "id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url"
-    )
-    .order("created_at", { ascending: false });
+  let projects: Project[] = [];
+  let errorMessage = "";
 
-  const projects = (data ?? []) as Project[];
+  try {
+    const { data, error } = await supabase
+      .from("projects")
+      .select(
+        "id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      errorMessage = error.message;
+    }
+
+    projects = (data ?? []) as Project[];
+  } catch (error) {
+    errorMessage =
+      error instanceof Error ? error.message : "Error al leer proyectos";
+  }
 
   return (
     <div className="space-y-6">
@@ -46,9 +60,9 @@ export default async function ProjectsPage() {
         </Link>
       </div>
 
-      {error ? (
+      {errorMessage ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Error al leer proyectos: {error.message}
+          Error al leer proyectos: {errorMessage}
         </div>
       ) : projects.length === 0 ? (
         <div className="rounded-[28px] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
