@@ -9,14 +9,10 @@ type Props = {
 export default function GenerateExportButton({ projectId }: Props) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [fileName, setFileName] = useState("");
 
   const handleGenerate = async () => {
     setLoading(true);
     setResult("");
-    setVideoUrl("");
-    setFileName("");
 
     try {
       const response = await fetch("/api/render-video", {
@@ -29,15 +25,13 @@ export default function GenerateExportButton({ projectId }: Props) {
 
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
         setResult(`Error: ${data.error || "No se pudo generar el video."}`);
         setLoading(false);
         return;
       }
 
-      setFileName(data.fileName || "");
-      setVideoUrl(data.url || "");
-      setResult("Video generado correctamente.");
+      setResult(`Video generado en: ${data.outputLocation}`);
       setLoading(false);
     } catch (error) {
       setResult(
@@ -68,36 +62,11 @@ export default function GenerateExportButton({ projectId }: Props) {
         >
           {loading ? "generando video..." : "generar video mp4"}
         </button>
-
-        {videoUrl ? (
-          <a
-            href={videoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            ver video
-          </a>
-        ) : null}
       </div>
 
       {result ? (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-700">
-          <p>{result}</p>
-          {fileName ? <p className="mt-2">Archivo: {fileName}</p> : null}
-          {videoUrl ? (
-            <p className="mt-2 break-all">
-              URL:{" "}
-              <a
-                href={videoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-4"
-              >
-                {videoUrl}
-              </a>
-            </p>
-          ) : null}
+          {result}
         </div>
       ) : null}
     </div>
