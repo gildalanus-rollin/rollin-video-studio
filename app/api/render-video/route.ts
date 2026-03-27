@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
+function safeFileName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -27,8 +36,9 @@ export async function POST(req: Request) {
     }
 
     const parsed = parseProjectNotes(data.notes);
+    const baseName = safeFileName(data.title || "video-export");
+    const fileName = `${baseName}.mp4`;
 
-    // 👇 IMPORT DINÁMICO (LA CLAVE)
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
@@ -36,12 +46,13 @@ export async function POST(req: Request) {
       script: parsed.summary,
       image: parsed.selectedImage,
       music: parsed.selectedMusic,
-      outputFileName: `project-${projectId}.mp4`,
+      outputFileName: fileName,
     });
 
     return NextResponse.json({
       success: true,
       outputLocation: result.outputLocation,
+      fileName,
     });
   } catch (e: any) {
     return NextResponse.json(
