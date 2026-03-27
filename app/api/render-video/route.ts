@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
+import fs from "fs/promises";
 
 function safeFileName(value: string) {
   return value
@@ -49,10 +50,33 @@ export async function POST(req: Request) {
       outputFileName: fileName,
     });
 
+    // leer archivo generado
+    const fileBuffer = await fs.readFile(result.outputLocation);
+
+    // subir a Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("exports")
+      .upload(fileName, fileBuffer, {
+        contentType: "video/mp4",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return NextResponse.json({
+        success: false,
+        error: uploadError.message,
+      });
+    }
+
+    // obtener URL pública
+    const { data: publicUrlData } = supabase.storage
+      .from("exports")
+      .getPublicUrl(fileName);
+
     return NextResponse.json({
       success: true,
-      outputLocation: result.outputLocation,
       fileName,
+      url: publicUrlData.publicUrl,
     });
   } catch (e: any) {
     return NextResponse.json(
