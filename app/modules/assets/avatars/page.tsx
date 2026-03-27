@@ -1,13 +1,27 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default async function AvatarsAssetsPage() {
-  const { data, error } = await supabase.storage
-    .from("avatars")
-    .list("", {
+  let data: any[] | null = null;
+  let errorMessage = "";
+
+  try {
+    const result = await supabase.storage.from("avatars").list("", {
       limit: 50,
       sortBy: { column: "name", order: "asc" },
     });
+
+    data = result.data ?? [];
+
+    if (result.error) {
+      errorMessage = result.error.message;
+    }
+  } catch (error) {
+    errorMessage =
+      error instanceof Error ? error.message : "Error desconocido al leer Supabase";
+  }
 
   const files = data ?? [];
 
@@ -35,10 +49,10 @@ export default async function AvatarsAssetsPage() {
         </div>
       </section>
 
-      {error ? (
+      {errorMessage ? (
         <section className="rounded-[28px] border border-red-200 bg-red-50 p-6 shadow-sm">
           <p className="text-sm font-medium text-red-700">
-            Error al leer el bucket avatars: {error.message}
+            Error al leer el bucket avatars: {errorMessage}
           </p>
           <p className="mt-2 text-sm text-red-600">
             Esto no rompe la app. Solo indica que todavía falta permiso o acceso
