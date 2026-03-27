@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -39,15 +41,27 @@ const modules = [
 ];
 
 export default async function Home() {
-  const { data, error } = await supabase
-    .from("prompt_profiles")
-    .select(
-      "id, name, category, tone, max_duration_seconds, use_avatar, subtitle_style"
-    )
-    .eq("active", true)
-    .order("name");
+  let profiles: PromptProfile[] = [];
+  let errorMessage = "";
 
-  const profiles = (data ?? []) as PromptProfile[];
+  try {
+    const { data, error } = await supabase
+      .from("prompt_profiles")
+      .select(
+        "id, name, category, tone, max_duration_seconds, use_avatar, subtitle_style"
+      )
+      .eq("active", true)
+      .order("name");
+
+    if (error) {
+      errorMessage = error.message;
+    }
+
+    profiles = (data ?? []) as PromptProfile[];
+  } catch (error) {
+    errorMessage =
+      error instanceof Error ? error.message : "Error al leer Supabase";
+  }
 
   return (
     <div className="space-y-8">
@@ -165,9 +179,9 @@ export default async function Home() {
           </h2>
 
           <div className="mt-6">
-            {error ? (
+            {errorMessage ? (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                Error al leer Supabase: {error.message}
+                Error al leer Supabase: {errorMessage}
               </div>
             ) : profiles.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
