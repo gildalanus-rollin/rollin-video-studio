@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
-import { renderVideo } from "@/lib/renderVideo";
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +27,9 @@ export async function POST(req: Request) {
     }
 
     const parsed = parseProjectNotes(data.notes);
+
+    // 👇 IMPORT DINÁMICO (LA CLAVE)
+    const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
       title: data.title,
