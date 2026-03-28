@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { buildProjectNotes, parseProjectNotes } from "@/lib/projectNotes";
 
 type Props = {
   projectId: string;
@@ -22,46 +20,37 @@ export default function RemoveSecondarySourceButton({
     setRemoving(true);
     setMessage("");
 
-    const { data, error } = await supabase
-      .from("projects")
-      .select("notes")
-      .eq("id", projectId)
-      .single();
+    try {
+      const response = await fetch("/api/remove-secondary-source", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          sourceToRemove,
+        }),
+      });
 
-    if (error) {
+      const result = await response.json();
       setRemoving(false);
-      setMessage(`Error al leer el proyecto: ${error.message}`);
-      return;
-    }
 
-    const parsed = parseProjectNotes((data as { notes: string | null }).notes);
+      if (!response.ok) {
+        setMessage(
+          `Error al quitar la fuente secundaria: ${result.error || "Error desconocido"}`
+        );
+        return;
+      }
 
-    const nextNotes = buildProjectNotes({
-      secondarySources: parsed.secondarySources.filter(
-        (item) => item !== sourceToRemove
-      ),
-      summary: parsed.summary,
-      selectedImage: parsed.selectedImage,
-      selectedVideo: parsed.selectedVideo,
-      selectedMusic: parsed.selectedMusic,
-      externalImageUrl: parsed.externalImageUrl,
-      externalVideoUrl: parsed.externalVideoUrl,
-      narrationMode: parsed.narrationMode,
-    });
-
-    const { error: updateError } = await supabase
-      .from("projects")
-      .update({ notes: nextNotes })
-      .eq("id", projectId);
-
-    if (updateError) {
+      router.refresh();
+    } catch (error) {
       setRemoving(false);
-      setMessage(`Error al quitar la fuente: ${updateError.message}`);
-      return;
+      setMessage(
+        error instanceof Error
+          ? `Error al quitar la fuente secundaria: ${error.message}`
+          : "Error al quitar la fuente secundaria."
+      );
     }
-
-    router.push(`/projects/${projectId}`);
-    router.refresh();
   };
 
   return (
