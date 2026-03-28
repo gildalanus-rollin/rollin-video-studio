@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { buildProjectNotes } from "@/lib/projectNotes";
 
 type Props = {
   projectId: string;
@@ -19,13 +17,7 @@ type Props = {
 export default function ProjectSummaryEditor({
   projectId,
   mainSourceUrl,
-  initialSecondarySources,
   initialSummary,
-  initialSelectedImage,
-  initialSelectedVideo,
-  initialSelectedMusic,
-  initialExternalImageUrl,
-  initialExternalVideoUrl,
 }: Props) {
   const [summary, setSummary] = useState(initialSummary);
   const [saving, setSaving] = useState(false);
@@ -33,39 +25,40 @@ export default function ProjectSummaryEditor({
   const [message, setMessage] = useState("");
 
   const saveSummaryValue = async (nextSummary: string) => {
-    const notes = buildProjectNotes({
-      secondarySources: initialSecondarySources,
-      summary: nextSummary,
-      selectedImage: initialSelectedImage,
-      selectedVideo: initialSelectedVideo,
-      selectedMusic: initialSelectedMusic,
-      externalImageUrl: initialExternalImageUrl,
-      externalVideoUrl: initialExternalVideoUrl,
-      narrationMode: "",
+    const response = await fetch("/api/save-summary", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        projectId,
+        summary: nextSummary,
+      }),
     });
 
-    const { error } = await supabase
-      .from("projects")
-      .update({ notes })
-      .eq("id", projectId);
+    const result = await response.json();
 
-    return error;
+    if (!response.ok) {
+      throw new Error(result.error || "No se pudo guardar el resumen.");
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
     setMessage("");
 
-    const error = await saveSummaryValue(summary);
-
-    setSaving(false);
-
-    if (error) {
-      setMessage("Error al guardar el resumen.");
-      return;
+    try {
+      await saveSummaryValue(summary);
+      setMessage("Resumen guardado.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? `Error al guardar el resumen: ${error.message}`
+          : "Error al guardar el resumen."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    setMessage("Resumen guardado.");
   };
 
   const handleGenerate = async () => {
@@ -89,7 +82,6 @@ export default function ProjectSummaryEditor({
       const result = await response.json();
 
       if (!response.ok) {
-        setGenerating(false);
         setMessage(result?.error || "No se pudo generar el resumen.");
         return;
       }
@@ -97,23 +89,16 @@ export default function ProjectSummaryEditor({
       const generatedSummary = result.summary || "";
       setSummary(generatedSummary);
 
-      const error = await saveSummaryValue(generatedSummary);
-
-      setGenerating(false);
-
-      if (error) {
-        setMessage("Se generó el resumen, pero no se pudo guardar.");
-        return;
-      }
-
+      await saveSummaryValue(generatedSummary);
       setMessage("Resumen generado y guardado.");
     } catch (error) {
-      setGenerating(false);
       setMessage(
         error instanceof Error
           ? error.message
           : "Ocurrió un error al generar el resumen."
       );
+    } finally {
+      setGenerating(false);
     }
   };
 
