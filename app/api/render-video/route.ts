@@ -12,6 +12,36 @@ function safeFileName(value: string) {
     .toLowerCase();
 }
 
+async function resolveStorageUrl(
+  supabase: ReturnType<typeof createClient>,
+  rawValue: string | null | undefined,
+  bucketName: string
+) {
+  if (!rawValue) return null;
+
+  if (rawValue.startsWith("http://") || rawValue.startsWith("https://")) {
+    return rawValue;
+  }
+
+  const prefix = `${bucketName}/`;
+
+  if (!rawValue.startsWith(prefix)) {
+    return null;
+  }
+
+  const filePath = rawValue.replace(new RegExp(`^${bucketName}/`), "");
+
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .createSignedUrl(filePath, 60 * 60);
+
+  if (error || !data?.signedUrl) {
+    return null;
+  }
+
+  return data.signedUrl;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -49,13 +79,27 @@ export async function POST(req: Request) {
     const baseName = safeFileName(data.title || "video-export");
     const fileName = `${baseName}.mp4`;
 
+    const internalImageUrl = await resolveStorageUrl(
+      supabaseAdmin,
+      parsed.selectedImage,
+      "images"
+    );
+
+    const imageUrl = internalImageUrl || parsed.externalImageUrl || null;
+
+    const musicUrl = await resolveStorageUrl(
+      supabaseAdmin,
+      parsed.selectedMusic,
+      "music"
+    );
+
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
       title: data.title,
       script: parsed.summary,
-      image: parsed.selectedImage,
-      music: parsed.selectedMusic,
+      image: imageUrl,
+      music: musicUrl,
       outputFileName: fileName,
     });
 
@@ -84,6 +128,10 @@ export async function POST(req: Request) {
       fileName,
       outputLocation: result.outputLocation,
       url: publicUrlData.publicUrl,
+      debug: {
+        imageUsed: imageUrl,
+        musicUsed: musicUrl,
+      },
     });
   } catch (e: any) {
     return NextResponse.json(
