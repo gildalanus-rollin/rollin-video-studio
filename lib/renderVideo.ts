@@ -8,6 +8,8 @@ type RenderVideoInput = {
   script?: string;
   image?: string | null;
   music?: string | null;
+  outputFormat?: string;
+  durationInSeconds?: number;
   outputFileName?: string;
 };
 
@@ -22,15 +24,19 @@ export async function renderVideo(input: RenderVideoInput) {
     webpackOverride: (config) => config,
   });
 
+  const inputProps = {
+    title: input.title ?? "Rollin Video Studio",
+    script: input.script ?? "Primer export",
+    image: input.image ?? null,
+    music: input.music ?? null,
+    outputFormat: input.outputFormat ?? "16:9",
+    durationInSeconds: input.durationInSeconds ?? 15,
+  };
+
   const composition = await selectComposition({
     serveUrl: bundleLocation,
     id: "RollinExport",
-    inputProps: {
-      title: input.title ?? "Rollin Video Studio",
-      script: input.script ?? "Primer export",
-      image: input.image ?? null,
-      music: input.music ?? null,
-    },
+    inputProps,
   });
 
   const outputLocation = path.join(
@@ -43,12 +49,7 @@ export async function renderVideo(input: RenderVideoInput) {
     serveUrl: bundleLocation,
     codec: "h264",
     outputLocation,
-    inputProps: {
-      title: input.title ?? "Rollin Video Studio",
-      script: input.script ?? "Primer export",
-      image: input.image ?? null,
-      music: input.music ?? null,
-    },
+    inputProps,
   });
 
   return {

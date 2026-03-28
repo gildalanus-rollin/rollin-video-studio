@@ -100,6 +100,9 @@ export async function POST(req: Request) {
       "music"
     );
 
+    const outputFormat = data.output_format || "16:9";
+    const durationInSeconds = Number(data.duration_limit_seconds) || 15;
+
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
@@ -107,6 +110,8 @@ export async function POST(req: Request) {
       script: parsed.summary,
       image: imageUrl,
       music: musicUrl,
+      outputFormat,
+      durationInSeconds,
       outputFileName: fileName,
     });
 
@@ -139,6 +144,8 @@ export async function POST(req: Request) {
       debug: {
         imageUsed: imageUrl,
         musicUsed: musicUrl,
+        outputFormatUsed: outputFormat,
+        durationUsed: durationInSeconds,
       },
     });
   } catch (e: any) {
