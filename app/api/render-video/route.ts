@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
+import fs from "fs/promises";
 
 function safeFileName(value: string) {
   return value
@@ -22,8 +23,9 @@ export async function POST(req: Request) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !publishableKey) {
+    if (!supabaseUrl || !publishableKey || !serviceRoleKey) {
       return NextResponse.json(
         { error: "Faltan variables de entorno de Supabase en el servidor." },
         { status: 500 }
@@ -31,6 +33,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient(supabaseUrl, publishableKey);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const { data, error } = await supabase
       .from("projects")
@@ -56,31 +59,31 @@ export async function POST(req: Request) {
       outputFileName: fileName,
     });
 
-    const uploadResponse = await fetch(`${new URL(req.url).origin}/api/upload-video`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        filePath: result.outputLocation,
-        fileName,
-      }),
-    });
+    const fileBuffer = await fs.readFile(result.outputLocation);
 
-    const uploadJson = await uploadResponse.json();
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("videos")
+      .upload(fileName, fileBuffer, {
+        contentType: "video/mp4",
+        upsert: true,
+      });
 
-    if (!uploadResponse.ok) {
+    if (uploadError) {
       return NextResponse.json(
-        { error: uploadJson.error || "No se pudo subir el video." },
+        { error: uploadError.message },
         { status: 500 }
       );
     }
+
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from("videos")
+      .getPublicUrl(fileName);
 
     return NextResponse.json({
       success: true,
       fileName,
       outputLocation: result.outputLocation,
-      url: uploadJson.url,
+      url: publicUrlData.publicUrl,
     });
   } catch (e: any) {
     return NextResponse.json(
