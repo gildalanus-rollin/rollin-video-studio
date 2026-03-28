@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 type Props = {
   projectId: string;
@@ -30,21 +29,38 @@ export default function ProjectTitleEditor({
       return;
     }
 
-    const { error } = await supabase
-      .from("projects")
-      .update({ title: cleanTitle })
-      .eq("id", projectId);
+    try {
+      const response = await fetch("/api/update-project-title", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          title: cleanTitle,
+        }),
+      });
 
-    setSaving(false);
+      const result = await response.json();
 
-    if (error) {
-      setMessage(`Error al guardar el título: ${error.message}`);
-      return;
+      setSaving(false);
+
+      if (!response.ok) {
+        setMessage(`Error al guardar el título: ${result.error || "Error desconocido"}`);
+        return;
+      }
+
+      setMessage("Título guardado.");
+      router.push(`/projects/${projectId}`);
+      router.refresh();
+    } catch (error) {
+      setSaving(false);
+      setMessage(
+        error instanceof Error
+          ? `Error al guardar el título: ${error.message}`
+          : "Error al guardar el título."
+      );
     }
-
-    setMessage("Título guardado.");
-    router.push(`/projects/${projectId}`);
-    router.refresh();
   };
 
   return (
