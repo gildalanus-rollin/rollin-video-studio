@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 type Props = {
   projectId: string;
@@ -17,19 +16,36 @@ export default function ClearMainSourceButton({ projectId }: Props) {
     setClearing(true);
     setMessage("");
 
-    const { error } = await supabase
-      .from("projects")
-      .update({ main_source_url: null })
-      .eq("id", projectId);
+    try {
+      const response = await fetch("/api/clear-main-source", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId }),
+      });
 
-    if (error) {
+      const result = await response.json();
+
       setClearing(false);
-      setMessage(`Error al quitar la fuente principal: ${error.message}`);
-      return;
-    }
 
-    router.push(`/projects/${projectId}`);
-    router.refresh();
+      if (!response.ok) {
+        setMessage(
+          `Error al quitar la fuente principal: ${result.error || "Error desconocido"}`
+        );
+        return;
+      }
+
+      router.push(`/projects/${projectId}`);
+      router.refresh();
+    } catch (error) {
+      setClearing(false);
+      setMessage(
+        error instanceof Error
+          ? `Error al quitar la fuente principal: ${error.message}`
+          : "Error al quitar la fuente principal."
+      );
+    }
   };
 
   return (
