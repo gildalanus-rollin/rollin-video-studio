@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { buildProjectNotes, parseProjectNotes } from "@/lib/projectNotes";
 
 export default function SourcesEditor({
   projectId,
@@ -16,33 +14,81 @@ export default function SourcesEditor({
   const [main, setMain] = useState(currentMain || "");
   const [secondary, setSecondary] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const saveMain = async () => {
     setLoading(true);
-    await supabase.from("projects").update({ main_source_url: main }).eq("id", projectId);
-    router.refresh();
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/save-sources", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          mainSourceUrl: main,
+          mode: "save-main",
+        }),
+      });
+
+      const result = await response.json();
+      setLoading(false);
+
+      if (!response.ok) {
+        setMessage(`Error al guardar la fuente principal: ${result.error || "Error desconocido"}`);
+        return;
+      }
+
+      setMessage("Fuente principal guardada.");
+      router.refresh();
+    } catch (error) {
+      setLoading(false);
+      setMessage(
+        error instanceof Error
+          ? `Error al guardar la fuente principal: ${error.message}`
+          : "Error al guardar la fuente principal."
+      );
+    }
   };
 
   const addSecondary = async () => {
     setLoading(true);
+    setMessage("");
 
-    const { data } = await supabase
-      .from("projects")
-      .select("notes")
-      .eq("id", projectId)
-      .single();
+    try {
+      const response = await fetch("/api/save-sources", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          secondarySourceUrl: secondary,
+          mode: "add-secondary",
+        }),
+      });
 
-    const parsed = parseProjectNotes((data as { notes: string | null } | null)?.notes ?? null);
+      const result = await response.json();
+      setLoading(false);
 
-    const notes = buildProjectNotes({
-      ...parsed,
-      secondarySources: [...parsed.secondarySources, secondary],
-    });
+      if (!response.ok) {
+        setMessage(`Error al guardar la fuente secundaria: ${result.error || "Error desconocido"}`);
+        return;
+      }
 
-    await supabase.from("projects").update({ notes }).eq("id", projectId);
-
-    setSecondary("");
-    router.refresh();
+      setSecondary("");
+      setMessage("Fuente secundaria agregada.");
+      router.refresh();
+    } catch (error) {
+      setLoading(false);
+      setMessage(
+        error instanceof Error
+          ? `Error al guardar la fuente secundaria: ${error.message}`
+          : "Error al guardar la fuente secundaria."
+      );
+    }
   };
 
   return (
@@ -56,7 +102,8 @@ export default function SourcesEditor({
         />
         <button
           onClick={saveMain}
-          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm"
+          disabled={loading}
+          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm disabled:bg-slate-300"
         >
           guardar
         </button>
@@ -71,11 +118,14 @@ export default function SourcesEditor({
         />
         <button
           onClick={addSecondary}
-          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm"
+          disabled={loading}
+          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm disabled:bg-slate-300"
         >
           +
         </button>
       </div>
+
+      {message ? <p className="text-sm text-slate-500">{message}</p> : null}
     </div>
   );
 }
