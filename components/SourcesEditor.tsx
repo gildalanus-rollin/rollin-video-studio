@@ -37,7 +37,9 @@ export default function SourcesEditor({
       setLoading(false);
 
       if (!response.ok) {
-        setMessage(`Error al guardar la fuente principal: ${result.error || "Error desconocido"}`);
+        setMessage(
+          `Error al guardar la fuente principal: ${result.error || "Error desconocido"}`
+        );
         return;
       }
 
@@ -74,7 +76,9 @@ export default function SourcesEditor({
       setLoading(false);
 
       if (!response.ok) {
-        setMessage(`Error al guardar la fuente secundaria: ${result.error || "Error desconocido"}`);
+        setMessage(
+          `Error al guardar la fuente secundaria: ${result.error || "Error desconocido"}`
+        );
         return;
       }
 
@@ -92,18 +96,18 @@ export default function SourcesEditor({
   };
 
   return (
-    <div className="space-y-3 mt-3">
+    <div className="mt-3 space-y-3">
       <div className="flex gap-2">
         <input
           value={main}
           onChange={(e) => setMain(e.target.value)}
           placeholder="pegar fuente principal"
-          className="flex-1 border rounded-xl px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border px-3 py-2 text-sm"
         />
         <button
           onClick={saveMain}
           disabled={loading}
-          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm disabled:bg-slate-300"
+          className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white disabled:bg-slate-300"
         >
           guardar
         </button>
@@ -114,12 +118,12 @@ export default function SourcesEditor({
           value={secondary}
           onChange={(e) => setSecondary(e.target.value)}
           placeholder="agregar fuente secundaria"
-          className="flex-1 border rounded-xl px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border px-3 py-2 text-sm"
         />
         <button
           onClick={addSecondary}
           disabled={loading}
-          className="bg-slate-900 text-white px-3 py-2 rounded-xl text-sm disabled:bg-slate-300"
+          className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white disabled:bg-slate-300"
         >
           +
         </button>
