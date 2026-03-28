@@ -77,7 +77,14 @@ export async function POST(req: Request) {
 
     const parsed = parseProjectNotes(data.notes);
     const baseName = safeFileName(data.title || "video-export");
-    const fileName = `${baseName}.mp4`;
+
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .replace("T", "_")
+      .replace("Z", "");
+
+    const fileName = `${baseName}-${stamp}.mp4`;
 
     const internalImageUrl = await resolveStorageUrl(
       supabaseAdmin,
@@ -109,7 +116,8 @@ export async function POST(req: Request) {
       .from("videos")
       .upload(fileName, fileBuffer, {
         contentType: "video/mp4",
-        upsert: true,
+        upsert: false,
+        cacheControl: "0",
       });
 
     if (uploadError) {
