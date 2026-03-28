@@ -13,7 +13,7 @@ function safeFileName(value: string) {
 }
 
 async function resolveStorageUrl(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   rawValue: string | null | undefined,
   bucketName: string
 ) {
