@@ -20,10 +20,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    );
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!supabaseUrl || !publishableKey) {
+      return NextResponse.json(
+        { error: "Faltan variables de entorno de Supabase en el servidor." },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, publishableKey);
 
     const { data, error } = await supabase
       .from("projects")
@@ -49,10 +56,31 @@ export async function POST(req: Request) {
       outputFileName: fileName,
     });
 
+    const uploadResponse = await fetch(`${new URL(req.url).origin}/api/upload-video`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        filePath: result.outputLocation,
+        fileName,
+      }),
+    });
+
+    const uploadJson = await uploadResponse.json();
+
+    if (!uploadResponse.ok) {
+      return NextResponse.json(
+        { error: uploadJson.error || "No se pudo subir el video." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      outputLocation: result.outputLocation,
       fileName,
+      outputLocation: result.outputLocation,
+      url: uploadJson.url,
     });
   } catch (e: any) {
     return NextResponse.json(
