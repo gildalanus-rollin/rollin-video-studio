@@ -6,10 +6,17 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { projectId, title } = body;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxenhkb3RwemJycGFwY3ZqbW54Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDQ1NjQ4MSwiZXhwIjoyMDkwMDMyNDgxfQ.H9pPBNpIiej5c9G8FNWMiQY9qbS5ydEustZpo7mZQ7I
-    );
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { error: "Faltan variables de entorno de Supabase en el servidor." },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { error } = await supabase
       .from("projects")
@@ -21,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Error actualizando título" },
       { status: 500 }
