@@ -10,6 +10,14 @@ type Props = {
   initialOutputFormat: string;
 };
 
+const editorialProfiles = [
+  "urgente",
+  "explicativo",
+  "contexto",
+  "impacto",
+  "seguimiento",
+];
+
 export default function ProjectSettingsEditor({
   projectId,
   initialCategory,
@@ -17,7 +25,9 @@ export default function ProjectSettingsEditor({
   initialOutputFormat,
 }: Props) {
   const router = useRouter();
-  const [category, setCategory] = useState(initialCategory || "General");
+  const [editorialProfile, setEditorialProfile] = useState(
+    initialCategory || "explicativo"
+  );
   const [durationLimitSeconds, setDurationLimitSeconds] = useState(
     initialDurationLimitSeconds || 15
   );
@@ -37,7 +47,7 @@ export default function ProjectSettingsEditor({
         },
         body: JSON.stringify({
           projectId,
-          category,
+          editorialProfile,
           durationLimitSeconds,
           outputFormat,
         }),
@@ -68,35 +78,55 @@ export default function ProjectSettingsEditor({
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-xs uppercase tracking-wide text-slate-400">
-        ajustes de export
+        enfoque y export
       </p>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-        <input
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="Categoría"
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-        />
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            perfil editorial
+          </label>
+          <select
+            value={editorialProfile}
+            onChange={(e) => setEditorialProfile(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            {editorialProfiles.map((profile) => (
+              <option key={profile} value={profile}>
+                {profile}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <input
-          type="number"
-          min={5}
-          max={180}
-          value={durationLimitSeconds}
-          onChange={(e) => setDurationLimitSeconds(Number(e.target.value))}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-        />
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            duración objetivo
+          </label>
+          <input
+            type="number"
+            min={5}
+            max={180}
+            value={durationLimitSeconds}
+            onChange={(e) => setDurationLimitSeconds(Number(e.target.value))}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          />
+        </div>
 
-        <select
-          value={outputFormat}
-          onChange={(e) => setOutputFormat(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-        >
-          <option value="16:9">16:9</option>
-          <option value="9:16">9:16</option>
-          <option value="1:1">1:1</option>
-        </select>
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            formato de salida
+          </label>
+          <select
+            value={outputFormat}
+            onChange={(e) => setOutputFormat(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+            <option value="1:1">1:1</option>
+          </select>
+        </div>
       </div>
 
       <div className="mt-3 flex items-center gap-3">

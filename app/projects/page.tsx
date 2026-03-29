@@ -81,7 +81,7 @@ export default async function ProjectsPage() {
                     {project.title}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    {project.category ?? "General"}
+                    {project.category ?? "explicativo"}
                   </p>
                 </div>
 

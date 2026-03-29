@@ -128,10 +128,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-400">
-              categoría
+              perfil editorial
             </p>
             <p className="mt-1 text-sm font-medium text-slate-900">
-              {project.category ?? "General"}
+              {project.category ?? "explicativo"}
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         <div className="mt-6 max-w-5xl">
           <ProjectSettingsEditor
             projectId={project.id}
-            initialCategory={project.category ?? "General"}
+            initialCategory={project.category ?? "explicativo"}
             initialDurationLimitSeconds={project.duration_limit_seconds}
             initialOutputFormat={project.output_format}
           />
