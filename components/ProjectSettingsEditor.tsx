@@ -18,6 +18,8 @@ const editorialProfiles = [
   "seguimiento",
 ];
 
+const durationOptions = [10, 15, 30, 45];
+
 export default function ProjectSettingsEditor({
   projectId,
   initialCategory,
@@ -29,7 +31,9 @@ export default function ProjectSettingsEditor({
     initialCategory || "explicativo"
   );
   const [durationLimitSeconds, setDurationLimitSeconds] = useState(
-    initialDurationLimitSeconds || 15
+    durationOptions.includes(initialDurationLimitSeconds)
+      ? initialDurationLimitSeconds
+      : 15
   );
   const [outputFormat, setOutputFormat] = useState(initialOutputFormat || "16:9");
   const [saving, setSaving] = useState(false);
@@ -103,14 +107,17 @@ export default function ProjectSettingsEditor({
           <label className="text-xs uppercase tracking-wide text-slate-400">
             duración objetivo
           </label>
-          <input
-            type="number"
-            min={5}
-            max={180}
+          <select
             value={durationLimitSeconds}
             onChange={(e) => setDurationLimitSeconds(Number(e.target.value))}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-          />
+          >
+            {durationOptions.map((seconds) => (
+              <option key={seconds} value={seconds}>
+                {seconds}s
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-1">
