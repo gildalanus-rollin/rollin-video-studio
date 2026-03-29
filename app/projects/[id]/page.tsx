@@ -19,6 +19,7 @@ type Project = {
   id: string;
   title: string;
   category: string | null;
+  editorial_profile: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -39,7 +40,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
@@ -78,6 +79,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const externalVideoUrl = parsedNotes.externalVideoUrl;
   const narrationMode = parsedNotes.narrationMode;
 
+  const effectiveEditorialProfile =
+    project.editorial_profile ?? project.category ?? "explicativo";
+
   let selectedImagePreviewUrl = "";
 
   if (selectedImage.startsWith("images/")) {
@@ -108,8 +112,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.title}
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Esta pantalla organiza la noticia, las fuentes, los recursos y la
-              salida final del video en un solo lugar.
+              Esta pantalla organiza la noticia, el enfoque editorial, los recursos y la salida final del video en un solo lugar.
             </p>
 
             <div className="mt-4 max-w-3xl">
@@ -131,7 +134,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               perfil editorial
             </p>
             <p className="mt-1 text-sm font-medium text-slate-900">
-              {project.category ?? "explicativo"}
+              {effectiveEditorialProfile}
             </p>
           </div>
 
@@ -166,7 +169,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         <div className="mt-6 max-w-5xl">
           <ProjectSettingsEditor
             projectId={project.id}
-            initialCategory={project.category ?? "explicativo"}
+            initialCategory={effectiveEditorialProfile}
             initialDurationLimitSeconds={project.duration_limit_seconds}
             initialOutputFormat={project.output_format}
           />
@@ -184,7 +187,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             </h2>
 
             <div className="mt-5 space-y-4">
-<SourcesEditor projectId={project.id} currentMain={project.main_source_url || ""} />
+              <SourcesEditor projectId={project.id} currentMain={project.main_source_url || ""} />
+
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -278,10 +282,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         <div className="space-y-6">
           <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              3. armado audiovisual
+              3. recursos
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              recursos del video
+              materiales del video
             </h2>
 
             <div className="mt-5 space-y-3">
@@ -323,31 +327,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  video elegido
-                </p>
-                <p className="mt-1 break-all text-sm text-slate-600">
-                  {selectedVideo || "Todavía no hay video elegido."}
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <Link
-                    href={`/modules/assets/videos?projectId=${project.id}`}
-                    className="inline-flex rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-                  >
-                    {selectedVideo ? "reemplazar video" : "seleccionar video"}
-                  </Link>
-
-                  {selectedVideo ? (
-                    <ClearSelectedAssetButton
-                      projectId={project.id}
-                      assetType="video"
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
                   música elegida
                 </p>
                 <p className="mt-1 break-all text-sm text-slate-600">
@@ -373,7 +352,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  material externo por link
+                  imagen externa por link
                 </p>
 
                 {externalImageUrl ? (
@@ -396,19 +375,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       <ClearExternalLinkButton
                         projectId={project.id}
                         linkType="image"
-                      />
-                    ) : null}
-                  </div>
-
-                  <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="min-w-0 flex-1 break-all">
-                      video externo: {externalVideoUrl || "sin link todavía"}
-                    </p>
-
-                    {externalVideoUrl ? (
-                      <ClearExternalLinkButton
-                        projectId={project.id}
-                        linkType="video"
                       />
                     ) : null}
                   </div>
@@ -440,15 +406,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialExternalVideoUrl={externalVideoUrl}
                 initialNarrationMode={narrationMode}
               />
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  gráfica
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Pendiente de definición visual final.
-                </p>
-              </div>
             </div>
           </section>
 
@@ -457,32 +414,14 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               4. salida final
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              configuración de exportación
+              render y link público
             </h2>
 
             <div className="mt-5 space-y-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  formato
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {project.output_format}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  duración máxima
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {project.duration_limit_seconds} segundos
-                </p>
-              </div>
-
               <GenerateExportButton projectId={project.id} />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm leading-6 text-slate-500">
-                Esta primera versión arma el paquete del video con todos los datos cargados del proyecto.
+                El render usa título, resumen, foto, música, perfil editorial, formato y duración del proyecto.
               </div>
             </div>
           </section>
