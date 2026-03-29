@@ -21,7 +21,6 @@ export async function POST(req: Request) {
     const { error } = await supabase
       .from("projects")
       .update({
-        editorial_profile: editorialProfile || "explicativo",
         category: editorialProfile || "explicativo",
         duration_limit_seconds: Number(durationLimitSeconds) || 15,
         output_format: outputFormat || "16:9",
