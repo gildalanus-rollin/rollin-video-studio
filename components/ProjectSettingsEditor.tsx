@@ -1,0 +1,120 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+type Props = {
+  projectId: string;
+  initialCategory: string;
+  initialDurationLimitSeconds: number;
+  initialOutputFormat: string;
+};
+
+export default function ProjectSettingsEditor({
+  projectId,
+  initialCategory,
+  initialDurationLimitSeconds,
+  initialOutputFormat,
+}: Props) {
+  const router = useRouter();
+  const [category, setCategory] = useState(initialCategory || "General");
+  const [durationLimitSeconds, setDurationLimitSeconds] = useState(
+    initialDurationLimitSeconds || 15
+  );
+  const [outputFormat, setOutputFormat] = useState(initialOutputFormat || "16:9");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/update-project-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId,
+          category,
+          durationLimitSeconds,
+          outputFormat,
+        }),
+      });
+
+      const result = await response.json();
+      setSaving(false);
+
+      if (!response.ok) {
+        setMessage(
+          `Error al guardar ajustes: ${result.error || "Error desconocido"}`
+        );
+        return;
+      }
+
+      setMessage("Ajustes guardados.");
+      router.refresh();
+    } catch (error) {
+      setSaving(false);
+      setMessage(
+        error instanceof Error
+          ? `Error al guardar ajustes: ${error.message}`
+          : "Error al guardar ajustes."
+      );
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-400">
+        ajustes de export
+      </p>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <input
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          placeholder="Categoría"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+        />
+
+        <input
+          type="number"
+          min={5}
+          max={180}
+          value={durationLimitSeconds}
+          onChange={(e) => setDurationLimitSeconds(Number(e.target.value))}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+        />
+
+        <select
+          value={outputFormat}
+          onChange={(e) => setOutputFormat(e.target.value)}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+        >
+          <option value="16:9">16:9</option>
+          <option value="9:16">9:16</option>
+          <option value="1:1">1:1</option>
+        </select>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className={
+            saving
+              ? "rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-white"
+              : "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          }
+        >
+          {saving ? "guardando..." : "guardar ajustes"}
+        </button>
+
+        {message ? <span className="text-sm text-slate-500">{message}</span> : null}
+      </div>
+    </div>
+  );
+}

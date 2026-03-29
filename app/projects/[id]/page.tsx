@@ -12,6 +12,7 @@ import ClearExternalLinkButton from "@/components/ClearExternalLinkButton";
 import GenerateExportButton from "@/components/GenerateExportButton";
 import NarrationModeEditor from "@/components/NarrationModeEditor";
 import SourcesEditor from "@/components/SourcesEditor";
+import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
 type Project = {
@@ -160,6 +161,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {new Date(project.created_at).toLocaleString("es-AR")}
             </p>
           </div>
+        </div>
+
+        <div className="mt-6 max-w-5xl">
+          <ProjectSettingsEditor
+            projectId={project.id}
+            initialCategory={project.category ?? "General"}
+            initialDurationLimitSeconds={project.duration_limit_seconds}
+            initialOutputFormat={project.output_format}
+          />
         </div>
       </section>
 
