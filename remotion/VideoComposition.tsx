@@ -15,6 +15,7 @@ type Props = {
   image?: string | null;
   music?: string | null;
   avatarVideo?: string | null;
+  narrativePreset?: string;
 };
 
 const splitSummary = (text: string) => {
@@ -33,7 +34,8 @@ const splitSummary = (text: string) => {
 
 const BackgroundImage = ({ src }: { src: string | null }) => {
   const frame = useCurrentFrame();
-  const scale = interpolate(frame, [0, 450], [1, 1.08], {
+  const { durationInFrames } = useVideoConfig();
+  const scale = interpolate(frame, [0, durationInFrames], [1, 1.08], {
     extrapolateRight: "clamp",
   });
 
@@ -122,7 +124,7 @@ const AvatarWindow = ({ avatarVideo }: { avatarVideo?: string | null }) => {
           >
             avatar
           </div>
-          Ventana preparada para integrar HeyGen en el siguiente paso
+          Ventana preparada para integrar HeyGen
         </div>
       )}
     </div>
@@ -135,6 +137,7 @@ export const VideoComposition = ({
   image,
   music,
   avatarVideo,
+  narrativePreset = "titulo-resumen-foto",
 }: Props) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
@@ -176,6 +179,8 @@ export const VideoComposition = ({
             extrapolateLeft: "clamp",
           })
         : 0.18;
+
+  const showAvatar = narrativePreset === "titulo-resumen-foto-avatar";
 
   return (
     <AbsoluteFill
@@ -243,7 +248,7 @@ export const VideoComposition = ({
         >
           <div
             style={{
-              maxWidth: 1120,
+              maxWidth: showAvatar ? 1120 : 1240,
               background: "rgba(2,6,23,0.42)",
               borderRadius: 24,
               padding: "28px 32px",
@@ -262,7 +267,7 @@ export const VideoComposition = ({
 
           <div
             style={{
-              maxWidth: 1040,
+              maxWidth: showAvatar ? 980 : 1240,
               background: "rgba(2,6,23,0.58)",
               borderRadius: 28,
               padding: "36px 40px",
@@ -273,7 +278,7 @@ export const VideoComposition = ({
               <div
                 key={`${line}-${index}`}
                 style={{
-                  fontSize: 34,
+                  fontSize: showAvatar ? 32 : 36,
                   lineHeight: 1.32,
                   marginBottom: index === summaryLines.length - 1 ? 0 : 18,
                   opacity: 0.98,
@@ -284,7 +289,7 @@ export const VideoComposition = ({
             ))}
           </div>
 
-          <AvatarWindow avatarVideo={avatarVideo} />
+          {showAvatar ? <AvatarWindow avatarVideo={avatarVideo} /> : null}
         </AbsoluteFill>
       </Sequence>
 

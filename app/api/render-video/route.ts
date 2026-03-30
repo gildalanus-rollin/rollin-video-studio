@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from("projects")
-      .select("*")
+      .select("*, narrative_preset")
       .eq("id", projectId)
       .single();
 
@@ -112,6 +112,7 @@ export async function POST(req: Request) {
       music: musicUrl,
       outputFormat,
       durationInSeconds,
+      narrativePreset: data.narrative_preset || "titulo-resumen-foto",
       outputFileName: fileName,
     });
 
@@ -146,6 +147,7 @@ export async function POST(req: Request) {
         musicUsed: musicUrl,
         outputFormatUsed: outputFormat,
         durationUsed: durationInSeconds,
+        narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
       },
     });
   } catch (e: any) {

@@ -28,6 +28,7 @@ export const RemotionRoot = () => {
           script: "Primer export de prueba",
           image: null,
           music: null,
+          narrativePreset: "titulo-resumen-foto",
         }}
         calculateMetadata={({ props }: { props: any }) => {
           const fps = 30;
