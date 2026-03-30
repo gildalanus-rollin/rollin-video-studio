@@ -125,34 +125,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </span>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              perfil editorial
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {project.category ?? "explicativo"}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              duración objetivo
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {project.duration_limit_seconds}s
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              formato de salida
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {project.output_format}
-            </p>
-          </div>
-
+        <div className="mt-6 max-w-sm">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-400">
               creado
