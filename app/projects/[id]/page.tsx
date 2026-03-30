@@ -19,6 +19,7 @@ type Project = {
   id: string;
   title: string;
   category: string | null;
+  editorial_profile: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -39,7 +40,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
@@ -78,6 +79,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const externalVideoUrl = parsedNotes.externalVideoUrl;
   const narrationMode = parsedNotes.narrationMode;
 
+  const effectiveEditorialProfile =
+    project.editorial_profile ?? project.category ?? "explicativo";
+
   let selectedImagePreviewUrl = "";
 
   if (selectedImage.startsWith("images/")) {
@@ -108,8 +112,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.title}
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Esta pantalla organiza la noticia, las fuentes, los recursos y la
-              salida final del video en un solo lugar.
+              El flujo del proyecto sigue este orden: material, enfoque y export,
+              IA, gráfica y render final.
             </p>
 
             <div className="mt-4 max-w-3xl">
@@ -120,29 +124,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-            {project.status}
-          </span>
-        </div>
+          <div className="flex flex-col items-start gap-3">
+            <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+              {project.status}
+            </span>
 
-        <div className="mt-6 max-w-sm">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              creado
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {new Date(project.created_at).toLocaleString("es-AR")}
-            </p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">
+                creado
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-900">
+                {new Date(project.created_at).toLocaleString("es-AR")}
+              </p>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-6 max-w-5xl">
-          <ProjectSettingsEditor
-            projectId={project.id}
-            initialCategory={project.category ?? "explicativo"}
-            initialDurationLimitSeconds={project.duration_limit_seconds}
-            initialOutputFormat={project.output_format}
-          />
         </div>
       </section>
 
@@ -150,14 +145,18 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         <div className="space-y-6">
           <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              1. noticia y fuentes
+              1. material
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              base informativa
+              fuentes y recursos base
             </h2>
 
             <div className="mt-5 space-y-4">
-<SourcesEditor projectId={project.id} currentMain={project.main_source_url || ""} />
+              <SourcesEditor
+                projectId={project.id}
+                currentMain={project.main_source_url || ""}
+              />
+
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -221,43 +220,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   </p>
                 )}
               </div>
-            </div>
-          </section>
 
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              2. resumen editorial
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              enfoque del informe
-            </h2>
-
-            <div className="mt-5">
-              <ProjectSummaryEditor
-                projectId={project.id}
-                mainSourceUrl={project.main_source_url ?? ""}
-                initialSecondarySources={secondarySources}
-                initialSummary={summary}
-                initialSelectedImage={selectedImage}
-                initialSelectedVideo={selectedVideo}
-                initialSelectedMusic={selectedMusic}
-                initialExternalImageUrl={externalImageUrl}
-                initialExternalVideoUrl={externalVideoUrl}
-              />
-            </div>
-          </section>
-        </div>
-
-        <div className="space-y-6">
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              3. armado audiovisual
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              recursos del video
-            </h2>
-
-            <div className="mt-5 space-y-3">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
                   imagen elegida
@@ -321,7 +284,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  material externo por link
+                  imagen externa por link
                 </p>
 
                 {externalImageUrl ? (
@@ -344,19 +307,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       <ClearExternalLinkButton
                         projectId={project.id}
                         linkType="image"
-                      />
-                    ) : null}
-                  </div>
-
-                  <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="min-w-0 flex-1 break-all">
-                      video externo: {externalVideoUrl || "sin link todavía"}
-                    </p>
-
-                    {externalVideoUrl ? (
-                      <ClearExternalLinkButton
-                        projectId={project.id}
-                        linkType="video"
                       />
                     ) : null}
                   </div>
@@ -388,49 +338,79 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialExternalVideoUrl={externalVideoUrl}
                 initialNarrationMode={narrationMode}
               />
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  gráfica
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Pendiente de definición visual final.
-                </p>
-              </div>
             </div>
           </section>
 
           <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              4. salida final
+              2. enfoque y export
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              configuración de exportación
+              criterio editorial y salida
+            </h2>
+
+            <div className="mt-5">
+              <ProjectSettingsEditor
+                projectId={project.id}
+                initialCategory={effectiveEditorialProfile}
+                initialDurationLimitSeconds={project.duration_limit_seconds}
+                initialOutputFormat={project.output_format}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              3. IA
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              resumen dentro del marco elegido
+            </h2>
+
+            <div className="mt-5">
+              <ProjectSummaryEditor
+                projectId={project.id}
+                mainSourceUrl={project.main_source_url ?? ""}
+                initialSecondarySources={secondarySources}
+                initialSummary={summary}
+                initialSelectedImage={selectedImage}
+                initialSelectedVideo={selectedVideo}
+                initialSelectedMusic={selectedMusic}
+                initialExternalImageUrl={externalImageUrl}
+                initialExternalVideoUrl={externalVideoUrl}
+              />
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              4. gráfica
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              preview editorial
+            </h2>
+
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+              Este bloque queda reservado para el preview de título + foto + avatar
+              y herramientas simples de ajuste visual antes del render.
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              5. render
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              salida final y link público
             </h2>
 
             <div className="mt-5 space-y-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  formato
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {project.output_format}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
-                  duración máxima
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {project.duration_limit_seconds} segundos
-                </p>
-              </div>
-
               <GenerateExportButton projectId={project.id} />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm leading-6 text-slate-500">
-                Esta primera versión arma el paquete del video con todos los datos cargados del proyecto.
+                El render usa título, resumen, foto, música, perfil editorial, formato y duración del proyecto.
               </div>
             </div>
           </section>
