@@ -13,6 +13,7 @@ import GenerateExportButton from "@/components/GenerateExportButton";
 import NarrationModeEditor from "@/components/NarrationModeEditor";
 import SourcesEditor from "@/components/SourcesEditor";
 import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
+import GraphicPreview from "@/components/GraphicPreview";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
 type Project = {
@@ -83,7 +84,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const effectiveEditorialProfile =
     project.editorial_profile ?? project.category ?? "explicativo";
 
+  const effectiveNarrativePreset =
+    project.narrative_preset ?? "titulo-resumen-foto";
+
   let selectedImagePreviewUrl = "";
+
+  const previewImageUrl = selectedImagePreviewUrl || externalImageUrl || "";
 
   if (selectedImage.startsWith("images/")) {
     const imagePath = selectedImage.replace(/^images\//, "");
@@ -393,9 +399,18 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               preview editorial
             </h2>
 
-            <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-              Este bloque queda reservado para el preview de título + foto + avatar
-              y herramientas simples de ajuste visual antes del render.
+            <div className="mt-5 space-y-4">
+              <GraphicPreview
+                title={project.title}
+                imageUrl={previewImageUrl}
+                outputFormat={project.output_format}
+                narrativePreset={effectiveNarrativePreset}
+              />
+
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                Este bloque ya muestra un preview base de título + foto + avatar si aplica.
+                Más adelante vamos a sumar herramientas simples de ajuste visual.
+              </div>
             </div>
           </section>
 
