@@ -8,6 +8,7 @@ type Props = {
   initialCategory: string;
   initialDurationLimitSeconds: number;
   initialOutputFormat: string;
+  initialNarrativePreset?: string;
 };
 
 const editorialProfiles = [
@@ -20,15 +21,30 @@ const editorialProfiles = [
 
 const durationOptions = [10, 15, 30, 45];
 
+const narrativePresets = [
+  {
+    value: "titulo-resumen-foto",
+    label: "título + resumen + foto",
+  },
+  {
+    value: "titulo-resumen-foto-avatar",
+    label: "título + resumen + foto + avatar",
+  },
+];
+
 export default function ProjectSettingsEditor({
   projectId,
   initialCategory,
   initialDurationLimitSeconds,
   initialOutputFormat,
+  initialNarrativePreset,
 }: Props) {
   const router = useRouter();
   const [editorialProfile, setEditorialProfile] = useState(
     initialCategory || "explicativo"
+  );
+  const [narrativePreset, setNarrativePreset] = useState(
+    initialNarrativePreset || "titulo-resumen-foto"
   );
   const [durationLimitSeconds, setDurationLimitSeconds] = useState(
     durationOptions.includes(initialDurationLimitSeconds)
@@ -52,6 +68,7 @@ export default function ProjectSettingsEditor({
         body: JSON.stringify({
           projectId,
           editorialProfile,
+          narrativePreset,
           durationLimitSeconds,
           outputFormat,
         }),
@@ -85,7 +102,7 @@ export default function ProjectSettingsEditor({
         enfoque y export
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">
             perfil editorial
@@ -98,6 +115,23 @@ export default function ProjectSettingsEditor({
             {editorialProfiles.map((profile) => (
               <option key={profile} value={profile}>
                 {profile}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            preset narrativo
+          </label>
+          <select
+            value={narrativePreset}
+            onChange={(e) => setNarrativePreset(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            {narrativePresets.map((preset) => (
+              <option key={preset.value} value={preset.value}>
+                {preset.label}
               </option>
             ))}
           </select>

@@ -20,6 +20,7 @@ type Project = {
   title: string;
   category: string | null;
   editorial_profile: string | null;
+  narrative_preset?: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -40,7 +41,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, narrative_preset, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
