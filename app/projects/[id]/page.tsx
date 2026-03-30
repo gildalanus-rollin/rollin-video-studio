@@ -323,31 +323,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  video elegido
-                </p>
-                <p className="mt-1 break-all text-sm text-slate-600">
-                  {selectedVideo || "Todavía no hay video elegido."}
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <Link
-                    href={`/modules/assets/videos?projectId=${project.id}`}
-                    className="inline-flex rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-                  >
-                    {selectedVideo ? "reemplazar video" : "seleccionar video"}
-                  </Link>
-
-                  {selectedVideo ? (
-                    <ClearSelectedAssetButton
-                      projectId={project.id}
-                      assetType="video"
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
                   música elegida
                 </p>
                 <p className="mt-1 break-all text-sm text-slate-600">
