@@ -14,6 +14,7 @@ import NarrationModeEditor from "@/components/NarrationModeEditor";
 import SourcesEditor from "@/components/SourcesEditor";
 import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
 import GraphicPreview from "@/components/GraphicPreview";
+import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
 type Project = {
@@ -22,6 +23,8 @@ type Project = {
   category: string | null;
   editorial_profile: string | null;
   narrative_preset?: string | null;
+  graphic_title_size?: string | null;
+  graphic_title_position?: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -42,7 +45,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
@@ -86,6 +89,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const effectiveNarrativePreset =
     project.narrative_preset ?? "titulo-resumen-foto";
+
+  const effectiveGraphicTitleSize =
+    project.graphic_title_size ?? "md";
+
+  const effectiveGraphicTitlePosition =
+    project.graphic_title_position ?? "bottom-left";
 
   let selectedImagePreviewUrl = "";
 
@@ -405,11 +414,19 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 imageUrl={previewImageUrl}
                 outputFormat={project.output_format}
                 narrativePreset={effectiveNarrativePreset}
+                graphicTitleSize={effectiveGraphicTitleSize}
+                graphicTitlePosition={effectiveGraphicTitlePosition}
+              />
+
+              <GraphicSettingsEditor
+                projectId={project.id}
+                initialGraphicTitleSize={effectiveGraphicTitleSize}
+                initialGraphicTitlePosition={effectiveGraphicTitlePosition}
               />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
                 Este bloque ya muestra un preview base de título + foto + avatar si aplica.
-                Más adelante vamos a sumar herramientas simples de ajuste visual.
+                Ahora también permite ajustar tamaño y posición del título.
               </div>
             </div>
           </section>
