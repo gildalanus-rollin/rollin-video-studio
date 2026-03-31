@@ -36,18 +36,18 @@ export default function RenderScriptEditor({
 
       if (!response.ok) {
         setMessage(
-          `Error al guardar texto final: ${result.error || "Error desconocido"}`
+          `Error al guardar guion: ${result.error || "Error desconocido"}`
         );
         return;
       }
 
-      setMessage("Texto final guardado.");
+      setMessage("Guion guardado.");
     } catch (error) {
       setSaving(false);
       setMessage(
         error instanceof Error
-          ? `Error al guardar texto final: ${error.message}`
-          : "Error al guardar texto final."
+          ? `Error al guardar guion: ${error.message}`
+          : "Error al guardar guion."
       );
     }
   };
@@ -55,14 +55,14 @@ export default function RenderScriptEditor({
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-xs uppercase tracking-wide text-slate-400">
-        texto final para locución y subtítulos
+        guion de locución / avatar / subtítulos
       </p>
 
       <textarea
         rows={10}
         value={renderScript}
         onChange={(e) => setRenderScript(e.target.value)}
-        placeholder="Acá va el texto final que después va a alimentar locución, subtítulos y avatar."
+        placeholder="Acá va el texto que efectivamente va a decir el avatar o la locución. Los subtítulos deben seguir este guion, no el resumen editorial."
         className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-slate-400"
       />
 
@@ -77,7 +77,7 @@ export default function RenderScriptEditor({
               : "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
           }
         >
-          {saving ? "guardando..." : "guardar texto final"}
+          {saving ? "guardando..." : "guardar guion"}
         </button>
 
         {message ? <span className="text-sm text-slate-500">{message}</span> : null}
