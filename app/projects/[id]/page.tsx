@@ -118,6 +118,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const previewImageUrl = selectedImagePreviewUrl || externalImageUrl || "";
 
+  const previewSubtitleText =
+    (project.render_script && String(project.render_script).trim()) || summary || "";
+
   if (selectedImage.startsWith("images/")) {
     const imagePath = selectedImage.replace(/^images\//, "");
     const { data: signedImage } = await supabase.storage
@@ -443,8 +446,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 subtitleEnabled={effectiveSubtitleEnabled}
                 subtitlePosition={effectiveSubtitlePosition}
                 subtitleSize={effectiveSubtitleSize}
+                subtitleText={previewSubtitleText}
                 subtitlePosition={effectiveSubtitlePosition}
                 subtitleSize={effectiveSubtitleSize}
+                subtitleText={previewSubtitleText}
               />
 
               <GraphicSettingsEditor

@@ -9,6 +9,7 @@ type Props = {
   subtitleEnabled?: boolean | null;
   subtitlePosition?: string | null;
   subtitleSize?: string | null;
+  subtitleText?: string | null;
 };
 
 function getAspectClass(outputFormat: string) {
@@ -83,6 +84,45 @@ function getSubtitlePositionClasses(position?: string | null) {
   }
 }
 
+function buildSubtitleBlocks(text?: string | null) {
+  const clean = (text || "").trim();
+  if (!clean) return [];
+
+  const byLines = clean
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (byLines.length > 1) {
+    return byLines.slice(0, 6);
+  }
+
+  const sentences =
+    clean.match(/[^.!?\n]+[.!?]?/g)?.map((item) => item.trim()).filter(Boolean) || [];
+
+  if (sentences.length > 0) {
+    const blocks: string[] = [];
+    let current = "";
+
+    for (const sentence of sentences) {
+      const candidate = current ? `${current} ${sentence}` : sentence;
+
+      if (candidate.length <= 70) {
+        current = candidate;
+      } else {
+        if (current) blocks.push(current);
+        current = sentence;
+      }
+    }
+
+    if (current) blocks.push(current);
+
+    return blocks.slice(0, 6);
+  }
+
+  return [clean];
+}
+
 export default function GraphicPreview({
   title,
   imageUrl,
@@ -94,12 +134,16 @@ export default function GraphicPreview({
   subtitleEnabled,
   subtitlePosition,
   subtitleSize,
+  subtitleText,
 }: Props) {
   const showAvatar =
     narrativePreset === "titulo-resumen-foto-avatar" && Boolean(avatarEnabled);
 
+  const subtitleBlocks = buildSubtitleBlocks(subtitleText);
+  const previewSubtitle = subtitleBlocks[0] || "";
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div
         className={`relative overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950 ${getAspectClass(
           outputFormat
@@ -145,18 +189,18 @@ export default function GraphicPreview({
           </div>
         </div>
 
-        {subtitleEnabled ? (
+        {subtitleEnabled && previewSubtitle ? (
           <div
             className={`absolute z-30 flex ${getSubtitlePositionClasses(
               subtitlePosition
             )}`}
           >
             <div
-              className={`rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
+              className={`max-w-[85%] rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
                 subtitleSize
               )}`}
             >
-              subtítulo preview
+              {previewSubtitle}
             </div>
           </div>
         ) : null}
@@ -181,6 +225,29 @@ export default function GraphicPreview({
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           subtítulo size: <span className="font-medium text-slate-900">{subtitleSize || "md"}</span>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs uppercase tracking-wide text-slate-400">
+          bloques de subtítulo
+        </p>
+
+        {subtitleBlocks.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {subtitleBlocks.map((block, index) => (
+              <div
+                key={`${block}-${index}`}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-700"
+              >
+                {index + 1}. {block}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-slate-500">
+            Todavía no hay guion cargado para previsualizar subtítulos.
+          </p>
+        )}
       </div>
     </div>
   );
