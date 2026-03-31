@@ -13,6 +13,7 @@ import GenerateExportButton from "@/components/GenerateExportButton";
 import NarrationModeEditor from "@/components/NarrationModeEditor";
 import SourcesEditor from "@/components/SourcesEditor";
 import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
+import RenderScriptEditor from "@/components/RenderScriptEditor";
 import GraphicPreview from "@/components/GraphicPreview";
 import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
 import { parseProjectNotes } from "@/lib/projectNotes";
@@ -35,6 +36,7 @@ type Project = {
   created_at: string;
   main_source_url: string | null;
   notes: string | null;
+  render_script?: string | null;
 };
 
 type PageProps = {
@@ -49,7 +51,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes, render_script"
     )
     .eq("id", id)
     .single();
@@ -399,7 +401,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               resumen dentro del marco elegido
             </h2>
 
-            <div className="mt-5">
+            <div className="mt-5 space-y-4">
               <ProjectSummaryEditor
                 projectId={project.id}
                 mainSourceUrl={project.main_source_url ?? ""}
@@ -410,6 +412,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialSelectedMusic={selectedMusic}
                 initialExternalImageUrl={externalImageUrl}
                 initialExternalVideoUrl={externalVideoUrl}
+              />
+
+              <RenderScriptEditor
+                projectId={project.id}
+                initialRenderScript={project.render_script ?? summary}
               />
             </div>
           </section>
