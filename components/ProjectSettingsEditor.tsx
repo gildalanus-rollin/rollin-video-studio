@@ -9,6 +9,7 @@ type Props = {
   initialDurationLimitSeconds: number;
   initialOutputFormat: string;
   initialNarrativePreset?: string;
+  initialSubtitleEnabled?: boolean | null;
 };
 
 const editorialProfiles = [
@@ -38,6 +39,7 @@ export default function ProjectSettingsEditor({
   initialDurationLimitSeconds,
   initialOutputFormat,
   initialNarrativePreset,
+  initialSubtitleEnabled,
 }: Props) {
   const router = useRouter();
   const [editorialProfile, setEditorialProfile] = useState(
@@ -52,6 +54,9 @@ export default function ProjectSettingsEditor({
       : 15
   );
   const [outputFormat, setOutputFormat] = useState(initialOutputFormat || "16:9");
+  const [subtitleEnabled, setSubtitleEnabled] = useState(
+    initialSubtitleEnabled ?? true
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -71,6 +76,7 @@ export default function ProjectSettingsEditor({
           narrativePreset,
           durationLimitSeconds,
           outputFormat,
+          subtitleEnabled,
         }),
       });
 
@@ -102,7 +108,7 @@ export default function ProjectSettingsEditor({
         enfoque y export
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">
             perfil editorial
@@ -166,6 +172,20 @@ export default function ProjectSettingsEditor({
             <option value="16:9">16:9</option>
             <option value="9:16">9:16</option>
             <option value="1:1">1:1</option>
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            subtítulos
+          </label>
+          <select
+            value={subtitleEnabled ? "on" : "off"}
+            onChange={(e) => setSubtitleEnabled(e.target.value === "on")}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="on">sí</option>
+            <option value="off">no</option>
           </select>
         </div>
       </div>

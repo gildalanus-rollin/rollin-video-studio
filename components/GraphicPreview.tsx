@@ -6,6 +6,7 @@ type Props = {
   graphicTitleSize?: string | null;
   graphicTitlePosition?: string | null;
   avatarEnabled?: boolean | null;
+  subtitleEnabled?: boolean | null;
 };
 
 function getAspectClass(outputFormat: string) {
@@ -58,6 +59,7 @@ export default function GraphicPreview({
   graphicTitleSize,
   graphicTitlePosition,
   avatarEnabled,
+  subtitleEnabled,
 }: Props) {
   const showAvatar =
     narrativePreset === "titulo-resumen-foto-avatar" && Boolean(avatarEnabled);
@@ -104,9 +106,17 @@ export default function GraphicPreview({
             </h3>
           </div>
         </div>
+
+        {subtitleEnabled ? (
+          <div className="absolute inset-x-0 bottom-3 flex justify-center px-4">
+            <div className="rounded-lg bg-black/65 px-3 py-1.5 text-center text-xs font-medium text-white md:text-sm">
+              ejemplo de subtítulo en preview
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-5">
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           formato: <span className="font-medium text-slate-900">{outputFormat}</span>
         </div>
@@ -118,6 +128,9 @@ export default function GraphicPreview({
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           avatar: <span className="font-medium text-slate-900">{showAvatar ? "sí" : "no"}</span>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+          subtítulos: <span className="font-medium text-slate-900">{subtitleEnabled ? "sí" : "no"}</span>
         </div>
       </div>
     </div>

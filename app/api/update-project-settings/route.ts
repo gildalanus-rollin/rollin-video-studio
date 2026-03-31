@@ -10,6 +10,7 @@ export async function POST(req: Request) {
       narrativePreset,
       durationLimitSeconds,
       outputFormat,
+      subtitleEnabled,
     } = body;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
         narrative_preset: narrativePreset || "titulo-resumen-foto",
         duration_limit_seconds: Number(durationLimitSeconds) || 15,
         output_format: outputFormat || "16:9",
+        subtitle_enabled: Boolean(subtitleEnabled),
       })
       .eq("id", projectId);
 
