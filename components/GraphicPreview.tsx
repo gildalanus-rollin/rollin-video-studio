@@ -24,19 +24,72 @@ function getAspectClass(outputFormat: string) {
   }
 }
 
-function getTitleSizeClass(size?: string | null) {
+function getEffectiveTitleSize(
+  outputFormat: string,
+  requestedSize?: string | null
+) {
+  if (outputFormat === "1:1" && requestedSize === "lg") return "md";
+  if (outputFormat === "9:16" && requestedSize === "lg") return "md";
+  return requestedSize || "md";
+}
+
+function getTitleSizeClass(
+  outputFormat: string,
+  requestedSize?: string | null
+) {
+  const size = getEffectiveTitleSize(outputFormat, requestedSize);
+
+  if (outputFormat === "9:16") {
+    switch (size) {
+      case "sm":
+        return "text-sm leading-tight";
+      case "lg":
+        return "text-2xl leading-[1.05]";
+      case "md":
+      default:
+        return "text-xl leading-[1.08]";
+    }
+  }
+
+  if (outputFormat === "1:1") {
+    switch (size) {
+      case "sm":
+        return "text-lg leading-tight";
+      case "lg":
+        return "text-3xl leading-[1.04]";
+      case "md":
+      default:
+        return "text-2xl leading-[1.06]";
+    }
+  }
+
   switch (size) {
     case "sm":
-      return "text-base md:text-xl";
+      return "text-base md:text-xl leading-tight";
     case "lg":
-      return "text-xl md:text-3xl";
+      return "text-2xl md:text-4xl leading-[1.02]";
     case "md":
     default:
-      return "text-lg md:text-2xl";
+      return "text-xl md:text-3xl leading-[1.05]";
   }
 }
 
-function getSubtitleSizeClass(size?: string | null) {
+function getSubtitleSizeClass(
+  outputFormat: string,
+  size?: string | null
+) {
+  if (outputFormat === "9:16") {
+    switch (size) {
+      case "sm":
+        return "text-[10px]";
+      case "lg":
+        return "text-sm";
+      case "md":
+      default:
+        return "text-xs";
+    }
+  }
+
   switch (size) {
     case "sm":
       return "text-[10px] md:text-xs";
@@ -48,7 +101,18 @@ function getSubtitleSizeClass(size?: string | null) {
   }
 }
 
-function getTitlePositionClasses(position?: string | null) {
+function getTitlePositionClasses(
+  position?: string | null,
+  subtitleEnabled?: boolean | null,
+  subtitlePosition?: string | null
+) {
+  const subtitleAtBottom =
+    subtitleEnabled &&
+    (subtitlePosition === "bottom-left" ||
+      subtitlePosition === "bottom-center" ||
+      subtitlePosition === "bottom-right" ||
+      !subtitlePosition);
+
   switch (position) {
     case "top-left":
       return "left-0 top-0 items-start p-4 md:p-5";
@@ -57,12 +121,18 @@ function getTitlePositionClasses(position?: string | null) {
     case "top-right":
       return "right-0 top-0 items-end p-4 md:p-5";
     case "bottom-center":
-      return "inset-x-0 bottom-0 items-center p-4 md:p-5";
+      return subtitleAtBottom
+        ? "inset-x-0 bottom-16 items-center p-4 md:p-5"
+        : "inset-x-0 bottom-0 items-center p-4 md:p-5";
     case "bottom-right":
-      return "right-0 bottom-0 items-end p-4 md:p-5";
+      return subtitleAtBottom
+        ? "right-0 bottom-16 items-end p-4 md:p-5"
+        : "right-0 bottom-0 items-end p-4 md:p-5";
     case "bottom-left":
     default:
-      return "left-0 bottom-0 items-start p-4 md:p-5";
+      return subtitleAtBottom
+        ? "left-0 bottom-16 items-start p-4 md:p-5"
+        : "left-0 bottom-0 items-start p-4 md:p-5";
   }
 }
 
@@ -84,6 +154,25 @@ function getSubtitlePositionClasses(position?: string | null) {
   }
 }
 
+function splitLongBlock(block: string) {
+  const words = block.split(/\s+/).filter(Boolean);
+  const chunks: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= 42) {
+      current = candidate;
+    } else {
+      if (current) chunks.push(current);
+      current = word;
+    }
+  }
+
+  if (current) chunks.push(current);
+  return chunks;
+}
+
 function buildSubtitleBlocks(text?: string | null) {
   const clean = (text || "").trim();
   if (!clean) return [];
@@ -94,7 +183,7 @@ function buildSubtitleBlocks(text?: string | null) {
     .filter(Boolean);
 
   if (byLines.length > 1) {
-    return byLines.slice(0, 6);
+    return byLines.flatMap((line) => splitLongBlock(line)).slice(0, 8);
   }
 
   const sentences =
@@ -107,7 +196,7 @@ function buildSubtitleBlocks(text?: string | null) {
     for (const sentence of sentences) {
       const candidate = current ? `${current} ${sentence}` : sentence;
 
-      if (candidate.length <= 70) {
+      if (candidate.length <= 64) {
         current = candidate;
       } else {
         if (current) blocks.push(current);
@@ -117,10 +206,34 @@ function buildSubtitleBlocks(text?: string | null) {
 
     if (current) blocks.push(current);
 
-    return blocks.slice(0, 6);
+    return blocks.flatMap((block) => splitLongBlock(block)).slice(0, 8);
   }
 
-  return [clean];
+  return splitLongBlock(clean).slice(0, 8);
+}
+
+function getTitleWidthClass(outputFormat: string) {
+  switch (outputFormat) {
+    case "9:16":
+      return "max-w-[78%]";
+    case "1:1":
+      return "max-w-[82%]";
+    case "16:9":
+    default:
+      return "max-w-[72%]";
+  }
+}
+
+function getSubtitleWidthClass(outputFormat: string) {
+  switch (outputFormat) {
+    case "9:16":
+      return "max-w-[78%]";
+    case "1:1":
+      return "max-w-[82%]";
+    case "16:9":
+    default:
+      return "max-w-[62%]";
+  }
 }
 
 export default function GraphicPreview({
@@ -171,16 +284,19 @@ export default function GraphicPreview({
 
         <div
           className={`absolute z-10 flex max-w-full ${getTitlePositionClasses(
-            graphicTitlePosition
+            graphicTitlePosition,
+            subtitleEnabled,
+            subtitlePosition
           )}`}
         >
-          <div className="max-w-[90%]">
+          <div className={getTitleWidthClass(outputFormat)}>
             <div className="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-white/85 backdrop-blur">
               preview gráfica
             </div>
 
             <h3
-              className={`mt-3 font-semibold leading-tight text-white ${getTitleSizeClass(
+              className={`mt-3 font-semibold text-white ${getTitleSizeClass(
+                outputFormat,
                 graphicTitleSize
               )}`}
             >
@@ -196,11 +312,14 @@ export default function GraphicPreview({
             )}`}
           >
             <div
-              className={`max-w-[85%] rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
+              className={`${getSubtitleWidthClass(
+                outputFormat
+              )} rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
+                outputFormat,
                 subtitleSize
               )}`}
             >
-              {previewSubtitle}
+              <div className="line-clamp-2">{previewSubtitle}</div>
             </div>
           </div>
         ) : null}
@@ -214,7 +333,7 @@ export default function GraphicPreview({
           preset: <span className="font-medium text-slate-900">{narrativePreset}</span>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          título: <span className="font-medium text-slate-900">{graphicTitleSize || "md"}</span>
+          título: <span className="font-medium text-slate-900">{getEffectiveTitleSize(outputFormat, graphicTitleSize)}</span>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           avatar: <span className="font-medium text-slate-900">{showAvatar ? "sí" : "no"}</span>
