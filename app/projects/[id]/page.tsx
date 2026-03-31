@@ -447,9 +447,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 subtitlePosition={effectiveSubtitlePosition}
                 subtitleSize={effectiveSubtitleSize}
                 subtitleText={previewSubtitleText}
-                subtitlePosition={effectiveSubtitlePosition}
-                subtitleSize={effectiveSubtitleSize}
-                subtitleText={previewSubtitleText}
               />
 
               <GraphicSettingsEditor
