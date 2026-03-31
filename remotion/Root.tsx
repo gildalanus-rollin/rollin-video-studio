@@ -15,38 +15,41 @@ const getDimensions = (format?: string) => {
 
 export const RemotionRoot = () => {
   return (
-    <>
-      <Composition
-        id="RollinExport"
-        component={VideoComposition}
-        durationInFrames={450}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title: "Rollin Video Studio",
-          script: "Primer export de prueba",
-          image: null,
-          music: null,
-          narrativePreset: "titulo-resumen-foto",
-          avatarEnabled: true,
-        }}
-        calculateMetadata={({ props }: { props: any }) => {
-          const fps = 30;
-          const { width, height } = getDimensions(props?.outputFormat);
-          const durationInSeconds = Math.max(
-            10,
-            Number(props?.durationInSeconds) || 15
-          );
+    <Composition
+      id="RollinExport"
+      component={VideoComposition}
+      durationInFrames={450}
+      fps={30}
+      width={1920}
+      height={1080}
+      defaultProps={{
+        title: "Rollin Video Studio",
+        script: "",
+        image: null,
+        music: null,
+        narrativePreset: "titulo-resumen-foto",
+        avatarEnabled: true,
+        graphicTitleSize: "md",
+        graphicTitlePosition: "bottom-left",
+        subtitleEnabled: true,
+        subtitlePosition: "bottom-center",
+        subtitleSize: "md",
+      }}
+      calculateMetadata={({ props }: { props: any }) => {
+        const fps = 30;
+        const { width, height } = getDimensions(props?.outputFormat);
+        const durationInSeconds = Math.max(
+          10,
+          Number(props?.durationInSeconds) || 15
+        );
 
-          return {
-            fps,
-            width,
-            height,
-            durationInFrames: Math.round(durationInSeconds * fps),
-          };
-        }}
-      />
-    </>
+        return {
+          fps,
+          width,
+          height,
+          durationInFrames: Math.round(durationInSeconds * fps),
+        };
+      }}
+    />
   );
 };

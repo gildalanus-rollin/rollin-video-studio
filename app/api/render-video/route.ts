@@ -121,6 +121,11 @@ export async function POST(req: Request) {
       durationInSeconds,
       narrativePreset: data.narrative_preset || "titulo-resumen-foto",
       avatarEnabled: data.avatar_enabled ?? true,
+      graphicTitleSize: data.graphic_title_size ?? "md",
+      graphicTitlePosition: data.graphic_title_position ?? "bottom-left",
+      subtitleEnabled: data.subtitle_enabled ?? true,
+      subtitlePosition: data.subtitle_position ?? "bottom-center",
+      subtitleSize: data.subtitle_size ?? "md",
       outputFileName: fileName,
     });
 
@@ -157,6 +162,9 @@ export async function POST(req: Request) {
         durationUsed: durationInSeconds,
         narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
         avatarEnabledUsed: data.avatar_enabled ?? true,
+        subtitleEnabledUsed: data.subtitle_enabled ?? true,
+        subtitlePositionUsed: data.subtitle_position ?? "bottom-center",
+        subtitleSizeUsed: data.subtitle_size ?? "md",
         renderScriptUsed: finalScript,
       },
     });

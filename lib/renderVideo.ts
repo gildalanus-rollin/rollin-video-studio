@@ -12,6 +12,11 @@ type RenderVideoInput = {
   durationInSeconds?: number;
   narrativePreset?: string;
   avatarEnabled?: boolean;
+  graphicTitleSize?: string;
+  graphicTitlePosition?: string;
+  subtitleEnabled?: boolean;
+  subtitlePosition?: string;
+  subtitleSize?: string;
   outputFileName?: string;
 };
 
@@ -28,13 +33,18 @@ export async function renderVideo(input: RenderVideoInput) {
 
   const inputProps = {
     title: input.title ?? "Rollin Video Studio",
-    script: input.script ?? "Primer export",
+    script: input.script ?? "",
     image: input.image ?? null,
     music: input.music ?? null,
     outputFormat: input.outputFormat ?? "16:9",
     durationInSeconds: input.durationInSeconds ?? 15,
     narrativePreset: input.narrativePreset ?? "titulo-resumen-foto",
     avatarEnabled: input.avatarEnabled ?? true,
+    graphicTitleSize: input.graphicTitleSize ?? "md",
+    graphicTitlePosition: input.graphicTitlePosition ?? "bottom-left",
+    subtitleEnabled: input.subtitleEnabled ?? true,
+    subtitlePosition: input.subtitlePosition ?? "bottom-center",
+    subtitleSize: input.subtitleSize ?? "md",
   };
 
   const composition = await selectComposition({

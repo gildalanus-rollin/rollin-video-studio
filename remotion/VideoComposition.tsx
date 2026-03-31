@@ -2,12 +2,12 @@ import {
   AbsoluteFill,
   Audio,
   Img,
-  Sequence,
   interpolate,
   spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { getSubtitleBlockForFrame } from "@/lib/subtitles";
 
 type Props = {
   title?: string;
@@ -17,70 +17,194 @@ type Props = {
   avatarVideo?: string | null;
   narrativePreset?: string;
   avatarEnabled?: boolean;
+  graphicTitleSize?: string;
+  graphicTitlePosition?: string;
+  subtitleEnabled?: boolean;
+  subtitlePosition?: string;
+  subtitleSize?: string;
 };
 
-const splitSummary = (text: string) => {
-  const clean = (text || "").trim();
-  if (!clean) return ["Sin resumen cargado."];
-  const lines = clean
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
+function getEffectiveTitleSize(
+  outputFormat: string,
+  requestedSize?: string | null
+) {
+  if (outputFormat === "1:1" && requestedSize === "lg") return "md";
+  if (outputFormat === "9:16" && requestedSize === "lg") return "md";
+  return requestedSize || "md";
+}
 
-  if (lines.length > 0) return lines.slice(0, 4);
+function getTitleFontSize(outputFormat: string, requestedSize?: string | null) {
+  const size = getEffectiveTitleSize(outputFormat, requestedSize);
 
-  const chunks = clean.match(/[^.!?\n]+[.!?]?/g) || [clean];
-  return chunks.map((c) => c.trim()).filter(Boolean).slice(0, 4);
-};
-
-const BackgroundImage = ({ src }: { src: string | null }) => {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const scale = interpolate(frame, [0, durationInFrames], [1, 1.08], {
-    extrapolateRight: "clamp",
-  });
-
-  if (!src) {
-    return (
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(15,23,42,1) 0%, rgba(30,41,59,1) 100%)",
-        }}
-      />
-    );
+  if (outputFormat === "9:16") {
+    switch (size) {
+      case "sm":
+        return 42;
+      case "lg":
+        return 72;
+      case "md":
+      default:
+        return 58;
+    }
   }
 
-  return (
-    <AbsoluteFill>
-      <Img
-        src={src}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          transform: `scale(${scale})`,
-        }}
-      />
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(2,6,23,0.35) 0%, rgba(2,6,23,0.72) 65%, rgba(2,6,23,0.88) 100%)",
-        }}
-      />
-    </AbsoluteFill>
-  );
-};
+  if (outputFormat === "1:1") {
+    switch (size) {
+      case "sm":
+        return 50;
+      case "lg":
+        return 88;
+      case "md":
+      default:
+        return 68;
+    }
+  }
 
-const AvatarWindow = ({ avatarVideo }: { avatarVideo?: string | null }) => {
+  switch (size) {
+    case "sm":
+      return 48;
+    case "lg":
+      return 88;
+    case "md":
+    default:
+      return 68;
+  }
+}
+
+function getSubtitleFontSize(outputFormat: string, size?: string | null) {
+  if (outputFormat === "9:16") {
+    switch (size) {
+      case "sm":
+        return 24;
+      case "lg":
+        return 34;
+      case "md":
+      default:
+        return 28;
+    }
+  }
+
+  switch (size) {
+    case "sm":
+      return 22;
+    case "lg":
+      return 34;
+    case "md":
+    default:
+      return 28;
+  }
+}
+
+function getTitleLineHeight(outputFormat: string) {
+  if (outputFormat === "9:16") return 1.08;
+  if (outputFormat === "1:1") return 1.06;
+  return 1.05;
+}
+
+function getTitleBoxWidth(outputFormat: string) {
+  if (outputFormat === "9:16") return "78%";
+  if (outputFormat === "1:1") return "82%";
+  return "72%";
+}
+
+function getSubtitleBoxWidth(outputFormat: string) {
+  if (outputFormat === "9:16") return "78%";
+  if (outputFormat === "1:1") return "82%";
+  return "62%";
+}
+
+function getTitlePositionStyle(params: {
+  position?: string | null;
+  subtitleEnabled?: boolean;
+  subtitlePosition?: string | null;
+  outputFormat: string;
+}) {
+  const { position, subtitleEnabled, subtitlePosition, outputFormat } = params;
+
+  const subtitleAtBottom =
+    subtitleEnabled &&
+    (subtitlePosition === "bottom-left" ||
+      subtitlePosition === "bottom-center" ||
+      subtitlePosition === "bottom-right" ||
+      !subtitlePosition);
+
+  const bottomOffset =
+    outputFormat === "9:16" ? 180 : outputFormat === "1:1" ? 170 : 120;
+
+  const base = {
+    position: "absolute" as const,
+    zIndex: 10,
+    display: "flex",
+    padding: 40,
+  };
+
+  switch (position) {
+    case "top-left":
+      return { ...base, top: 0, left: 0, alignItems: "flex-start" as const };
+    case "top-center":
+      return { ...base, top: 0, left: 0, right: 0, justifyContent: "center" as const, alignItems: "center" as const };
+    case "top-right":
+      return { ...base, top: 0, right: 0, alignItems: "flex-end" as const };
+    case "bottom-center":
+      return {
+        ...base,
+        left: 0,
+        right: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+      };
+    case "bottom-right":
+      return {
+        ...base,
+        right: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        alignItems: "flex-end" as const,
+      };
+    case "bottom-left":
+    default:
+      return {
+        ...base,
+        left: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        alignItems: "flex-start" as const,
+      };
+  }
+}
+
+function getSubtitlePositionStyle(position?: string | null) {
+  const base = {
+    position: "absolute" as const,
+    zIndex: 30,
+    display: "flex",
+  };
+
+  switch (position) {
+    case "top-left":
+      return { ...base, top: 28, left: 28, justifyContent: "flex-start" as const };
+    case "top-center":
+      return { ...base, top: 28, left: 0, right: 0, justifyContent: "center" as const };
+    case "top-right":
+      return { ...base, top: 28, right: 28, justifyContent: "flex-end" as const };
+    case "bottom-left":
+      return { ...base, bottom: 24, left: 28, justifyContent: "flex-start" as const };
+    case "bottom-right":
+      return { ...base, bottom: 24, right: 28, justifyContent: "flex-end" as const };
+    case "bottom-center":
+    default:
+      return { ...base, bottom: 24, left: 0, right: 0, justifyContent: "center" as const };
+  }
+}
+
+const AvatarWindow = () => {
   return (
     <div
       style={{
         position: "absolute",
-        top: 48,
-        right: 48,
-        width: 300,
-        height: 420,
+        top: 28,
+        right: 28,
+        width: 170,
+        height: 220,
         borderRadius: 24,
         overflow: "hidden",
         border: "2px solid rgba(255,255,255,0.18)",
@@ -89,63 +213,60 @@ const AvatarWindow = ({ avatarVideo }: { avatarVideo?: string | null }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 5,
+        zIndex: 20,
       }}
     >
-      {avatarVideo ? (
-        <video
-          src={avatarVideo}
-          autoPlay
-          muted
-          playsInline
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
-      ) : (
+      <div
+        style={{
+          padding: 24,
+          textAlign: "center",
+          color: "white",
+          fontSize: 18,
+          lineHeight: 1.35,
+        }}
+      >
         <div
           style={{
-            padding: 24,
-            textAlign: "center",
-            color: "white",
-            fontSize: 24,
-            lineHeight: 1.35,
+            fontSize: 13,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            opacity: 0.7,
+            marginBottom: 12,
           }}
         >
-          <div
-            style={{
-              fontSize: 18,
-              letterSpacing: 1.2,
-              textTransform: "uppercase",
-              opacity: 0.7,
-              marginBottom: 12,
-            }}
-          >
-            avatar
-          </div>
-          Ventana preparada para integrar HeyGen
+          avatar
         </div>
-      )}
+        Ventana lista para HeyGen
+      </div>
     </div>
   );
 };
 
 export const VideoComposition = ({
   title = "Rollin Video Studio",
-  script = "Primer export de prueba",
+  script = "",
   image,
   music,
-  avatarVideo,
   narrativePreset = "titulo-resumen-foto",
   avatarEnabled = true,
+  graphicTitleSize = "md",
+  graphicTitlePosition = "bottom-left",
+  subtitleEnabled = true,
+  subtitlePosition = "bottom-center",
+  subtitleSize = "md",
 }: Props) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps, durationInFrames, width, height } = useVideoConfig();
+
+  const outputFormat =
+    width === 1080 && height === 1920
+      ? "9:16"
+      : width === 1080 && height === 1080
+        ? "1:1"
+        : "16:9";
 
   const imageSrc =
-    image && (image.startsWith("http://") || image.startsWith("https://"))
+    image && (image.startsWith("http://") || image.startsWith(" || image.startsWith("https://"))
       ? image
       : null;
 
@@ -153,15 +274,6 @@ export const VideoComposition = ({
     music && (music.startsWith("http://") || music.startsWith("https://"))
       ? music
       : null;
-
-  const summaryLines = splitSummary(script);
-
-  const introFrames = Math.floor(fps * 3);
-  const outroFrames = Math.floor(fps * 2);
-  const bodyFrames = Math.max(
-    durationInFrames - introFrames - outroFrames,
-    Math.floor(fps * 6)
-  );
 
   const titleEntrance = spring({
     frame,
@@ -185,6 +297,14 @@ export const VideoComposition = ({
   const showAvatar =
     narrativePreset === "titulo-resumen-foto-avatar" && avatarEnabled;
 
+  const currentSubtitle = subtitleEnabled
+    ? getSubtitleBlockForFrame({
+        text: script,
+        frame,
+        durationInFrames,
+      })
+    : "";
+
   return (
     <AbsoluteFill
       style={{
@@ -193,140 +313,104 @@ export const VideoComposition = ({
         fontFamily: "Arial, sans-serif",
       }}
     >
-      <BackgroundImage src={imageSrc} />
+      {imageSrc ? (
+        <Img
+          src={imageSrc}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <AbsoluteFill
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(15,23,42,1) 0%, rgba(30,41,59,1) 100%)",
+          }}
+        />
+      )}
+
+      <AbsoluteFill
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(2,6,23,0.25) 0%, rgba(2,6,23,0.58) 65%, rgba(2,6,23,0.82) 100%)",
+        }}
+      />
 
       {musicSrc ? <Audio src={musicSrc} volume={musicVolume} /> : null}
 
-      <Sequence from={0} durationInFrames={introFrames}>
-        <AbsoluteFill
+      {showAvatar ? <AvatarWindow /> : null}
+
+      <div
+        style={{
+          ...getTitlePositionStyle({
+            position: graphicTitlePosition,
+            subtitleEnabled,
+            subtitlePosition,
+            outputFormat,
+          }),
+          transform: `translateY(${(1 - titleEntrance) * 24}px)`,
+          opacity: titleEntrance,
+        }}
+      >
+        <div
           style={{
-            padding: 72,
-            justifyContent: "flex-end",
+            maxWidth: getTitleBoxWidth(outputFormat),
           }}
         >
           <div
             style={{
-              maxWidth: 1240,
-              background: "rgba(2,6,23,0.42)",
-              borderRadius: 28,
-              padding: "42px 46px",
-              transform: `translateY(${(1 - titleEntrance) * 40}px)`,
-              opacity: titleEntrance,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
+              display: "inline-flex",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.15)",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              backdropFilter: "blur(8px)",
             }}
           >
-            <div
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                opacity: 0.72,
-                marginBottom: 18,
-              }}
-            >
-              resumen informativo
-            </div>
-
-            <div
-              style={{
-                fontSize: 72,
-                fontWeight: 700,
-                lineHeight: 1.06,
-                textWrap: "balance",
-              }}
-            >
-              {title}
-            </div>
-          </div>
-        </AbsoluteFill>
-      </Sequence>
-
-      <Sequence from={introFrames} durationInFrames={bodyFrames}>
-        <AbsoluteFill
-          style={{
-            padding: 72,
-            justifyContent: "space-between",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: showAvatar ? 1120 : 1240,
-              background: "rgba(2,6,23,0.42)",
-              borderRadius: 24,
-              padding: "28px 32px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 22,
-                lineHeight: 1.35,
-                opacity: 0.92,
-              }}
-            >
-              {title}
-            </div>
+            título
           </div>
 
           <div
             style={{
-              maxWidth: showAvatar ? 980 : 1240,
-              background: "rgba(2,6,23,0.58)",
-              borderRadius: 28,
-              padding: "36px 40px",
-              boxShadow: "0 18px 50px rgba(0,0,0,0.3)",
+              marginTop: 14,
+              fontWeight: 700,
+              fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
+              lineHeight: getTitleLineHeight(outputFormat),
+              textShadow: "0 3px 18px rgba(0,0,0,0.35)",
             }}
           >
-            {summaryLines.map((line, index) => (
-              <div
-                key={`${line}-${index}`}
-                style={{
-                  fontSize: showAvatar ? 32 : 36,
-                  lineHeight: 1.32,
-                  marginBottom: index === summaryLines.length - 1 ? 0 : 18,
-                  opacity: 0.98,
-                }}
-              >
-                {line}
-              </div>
-            ))}
+            {title}
           </div>
+        </div>
+      </div>
 
-          {showAvatar ? <AvatarWindow avatarVideo={avatarVideo} /> : null}
-        </AbsoluteFill>
-      </Sequence>
-
-      <Sequence from={introFrames + bodyFrames} durationInFrames={outroFrames}>
-        <AbsoluteFill
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 72,
-          }}
-        >
+      {subtitleEnabled && currentSubtitle ? (
+        <div style={getSubtitlePositionStyle(subtitlePosition)}>
           <div
             style={{
-              maxWidth: 1200,
+              maxWidth: getSubtitleBoxWidth(outputFormat),
+              borderRadius: 16,
+              border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(0,0,0,0.78)",
+              padding: "12px 16px",
+              fontWeight: 600,
+              fontSize: getSubtitleFontSize(outputFormat, subtitleSize),
+              lineHeight: 1.25,
               textAlign: "center",
-              background: "rgba(2,6,23,0.5)",
-              borderRadius: 28,
-              padding: "36px 42px",
-              boxShadow: "0 18px 50px rgba(0,0,0,0.25)",
+              boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
             }}
           >
-            <div
-              style={{
-                fontSize: 54,
-                fontWeight: 700,
-                lineHeight: 1.1,
-                textWrap: "balance",
-              }}
-            >
-              {title}
-            </div>
+            {currentSubtitle}
           </div>
-        </AbsoluteFill>
-      </Sequence>
+        </div>
+      ) : null}
     </AbsoluteFill>
   );
 };
