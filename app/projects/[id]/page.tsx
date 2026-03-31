@@ -436,6 +436,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 subtitleEnabled={effectiveSubtitleEnabled}
                 subtitlePosition={effectiveSubtitlePosition}
                 subtitleSize={effectiveSubtitleSize}
+                subtitlePosition={effectiveSubtitlePosition}
+                subtitleSize={effectiveSubtitleSize}
               />
 
               <GraphicSettingsEditor
@@ -443,6 +445,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialGraphicTitleSize={effectiveGraphicTitleSize}
                 initialGraphicTitlePosition={effectiveGraphicTitlePosition}
                 initialAvatarEnabled={effectiveAvatarEnabled}
+                initialSubtitlePosition={effectiveSubtitlePosition}
+                initialSubtitleSize={effectiveSubtitleSize}
                 initialSubtitlePosition={effectiveSubtitlePosition}
                 initialSubtitleSize={effectiveSubtitleSize}
               />

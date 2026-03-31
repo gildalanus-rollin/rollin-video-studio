@@ -47,21 +47,21 @@ function getSubtitleSizeClass(size?: string | null) {
   }
 }
 
-function getPositionClasses(position?: string | null) {
+function getTitlePositionClasses(position?: string | null) {
   switch (position) {
     case "top-left":
-      return "inset-x-0 top-0 p-4 md:p-5 items-start";
+      return "left-0 top-0 items-start p-4 md:p-5";
     case "top-center":
-      return "inset-x-0 top-0 p-4 md:p-5 items-center";
+      return "inset-x-0 top-0 items-center p-4 md:p-5";
     case "top-right":
-      return "inset-x-0 top-0 p-4 md:p-5 items-end";
+      return "right-0 top-0 items-end p-4 md:p-5";
     case "bottom-center":
-      return "inset-x-0 bottom-0 p-4 md:p-5 items-center";
+      return "inset-x-0 bottom-0 items-center p-4 md:p-5";
     case "bottom-right":
-      return "inset-x-0 bottom-0 p-4 md:p-5 items-end";
+      return "right-0 bottom-0 items-end p-4 md:p-5";
     case "bottom-left":
     default:
-      return "inset-x-0 bottom-0 p-4 md:p-5 items-start";
+      return "left-0 bottom-0 items-start p-4 md:p-5";
   }
 }
 
@@ -118,14 +118,18 @@ export default function GraphicPreview({
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/75" />
 
         {showAvatar ? (
-          <div className="absolute right-4 top-4 h-24 w-20 rounded-2xl border border-white/20 bg-slate-800/90 shadow-lg md:h-28 md:w-24">
+          <div className="absolute right-4 top-4 z-20 h-24 w-20 rounded-2xl border border-white/20 bg-slate-800/90 shadow-lg md:h-28 md:w-24">
             <div className="flex h-full items-center justify-center px-2 text-center text-[10px] uppercase tracking-wide text-white/80">
               avatar
             </div>
           </div>
         ) : null}
 
-        <div className={`absolute flex ${getPositionClasses(graphicTitlePosition)}`}>
+        <div
+          className={`absolute z-10 flex max-w-full ${getTitlePositionClasses(
+            graphicTitlePosition
+          )}`}
+        >
           <div className="max-w-[90%]">
             <div className="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-white/85 backdrop-blur">
               preview gráfica
@@ -143,20 +147,22 @@ export default function GraphicPreview({
 
         {subtitleEnabled ? (
           <div
-            className={`absolute flex ${getSubtitlePositionClasses(subtitlePosition)}`}
+            className={`absolute z-30 flex ${getSubtitlePositionClasses(
+              subtitlePosition
+            )}`}
           >
             <div
-              className={`rounded-lg bg-black/65 px-3 py-1.5 text-center font-medium text-white ${getSubtitleSizeClass(
+              className={`rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
                 subtitleSize
               )}`}
             >
-              ejemplo de subtítulo en preview
+              subtítulo preview
             </div>
           </div>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-6">
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           formato: <span className="font-medium text-slate-900">{outputFormat}</span>
         </div>
@@ -170,7 +176,10 @@ export default function GraphicPreview({
           avatar: <span className="font-medium text-slate-900">{showAvatar ? "sí" : "no"}</span>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          subtítulos: <span className="font-medium text-slate-900">{subtitleEnabled ? "sí" : "no"}</span>
+          subtítulo pos: <span className="font-medium text-slate-900">{subtitlePosition || "bottom-center"}</span>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+          subtítulo size: <span className="font-medium text-slate-900">{subtitleSize || "md"}</span>
         </div>
       </div>
     </div>
