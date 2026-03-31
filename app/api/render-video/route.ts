@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from("projects")
-      .select("*, narrative_preset, avatar_enabled")
+      .select("*")
       .eq("id", projectId)
       .single();
 
@@ -103,11 +103,18 @@ export async function POST(req: Request) {
     const outputFormat = data.output_format || "16:9";
     const durationInSeconds = Number(data.duration_limit_seconds) || 15;
 
+    const finalScript =
+      (data.render_script && String(data.render_script).trim()) ||
+      parsed.summary ||
+      data.summary ||
+      data.title ||
+      "";
+
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
       title: data.title,
-      script: parsed.summary,
+      script: finalScript,
       image: imageUrl,
       music: musicUrl,
       outputFormat,
@@ -150,6 +157,7 @@ export async function POST(req: Request) {
         durationUsed: durationInSeconds,
         narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
         avatarEnabledUsed: data.avatar_enabled ?? true,
+        renderScriptUsed: finalScript,
       },
     });
   } catch (e: any) {
