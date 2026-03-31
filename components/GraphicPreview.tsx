@@ -7,6 +7,8 @@ type Props = {
   graphicTitlePosition?: string | null;
   avatarEnabled?: boolean | null;
   subtitleEnabled?: boolean | null;
+  subtitlePosition?: string | null;
+  subtitleSize?: string | null;
 };
 
 function getAspectClass(outputFormat: string) {
@@ -33,6 +35,18 @@ function getTitleSizeClass(size?: string | null) {
   }
 }
 
+function getSubtitleSizeClass(size?: string | null) {
+  switch (size) {
+    case "sm":
+      return "text-[10px] md:text-xs";
+    case "lg":
+      return "text-sm md:text-base";
+    case "md":
+    default:
+      return "text-xs md:text-sm";
+  }
+}
+
 function getPositionClasses(position?: string | null) {
   switch (position) {
     case "top-left":
@@ -51,6 +65,24 @@ function getPositionClasses(position?: string | null) {
   }
 }
 
+function getSubtitlePositionClasses(position?: string | null) {
+  switch (position) {
+    case "top-left":
+      return "left-4 top-4 justify-start";
+    case "top-center":
+      return "inset-x-0 top-4 justify-center px-4";
+    case "top-right":
+      return "right-4 top-4 justify-end";
+    case "bottom-left":
+      return "left-4 bottom-3 justify-start";
+    case "bottom-right":
+      return "right-4 bottom-3 justify-end";
+    case "bottom-center":
+    default:
+      return "inset-x-0 bottom-3 justify-center px-4";
+  }
+}
+
 export default function GraphicPreview({
   title,
   imageUrl,
@@ -60,6 +92,8 @@ export default function GraphicPreview({
   graphicTitlePosition,
   avatarEnabled,
   subtitleEnabled,
+  subtitlePosition,
+  subtitleSize,
 }: Props) {
   const showAvatar =
     narrativePreset === "titulo-resumen-foto-avatar" && Boolean(avatarEnabled);
@@ -108,8 +142,14 @@ export default function GraphicPreview({
         </div>
 
         {subtitleEnabled ? (
-          <div className="absolute inset-x-0 bottom-3 flex justify-center px-4">
-            <div className="rounded-lg bg-black/65 px-3 py-1.5 text-center text-xs font-medium text-white md:text-sm">
+          <div
+            className={`absolute flex ${getSubtitlePositionClasses(subtitlePosition)}`}
+          >
+            <div
+              className={`rounded-lg bg-black/65 px-3 py-1.5 text-center font-medium text-white ${getSubtitleSizeClass(
+                subtitleSize
+              )}`}
+            >
               ejemplo de subtítulo en preview
             </div>
           </div>

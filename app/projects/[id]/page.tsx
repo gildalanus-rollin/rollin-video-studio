@@ -27,6 +27,8 @@ type Project = {
   graphic_title_position?: string | null;
   avatar_enabled?: boolean | null;
   subtitle_enabled?: boolean | null;
+  subtitle_position?: string | null;
+  subtitle_size?: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -47,7 +49,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
@@ -103,6 +105,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const effectiveSubtitleEnabled =
     project.subtitle_enabled ?? true;
+
+  const effectiveSubtitlePosition =
+    project.subtitle_position ?? "bottom-center";
+
+  const effectiveSubtitleSize =
+    project.subtitle_size ?? "md";
 
   let selectedImagePreviewUrl = "";
 
@@ -426,6 +434,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 graphicTitlePosition={effectiveGraphicTitlePosition}
                 avatarEnabled={effectiveAvatarEnabled}
                 subtitleEnabled={effectiveSubtitleEnabled}
+                subtitlePosition={effectiveSubtitlePosition}
+                subtitleSize={effectiveSubtitleSize}
               />
 
               <GraphicSettingsEditor
@@ -433,6 +443,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialGraphicTitleSize={effectiveGraphicTitleSize}
                 initialGraphicTitlePosition={effectiveGraphicTitlePosition}
                 initialAvatarEnabled={effectiveAvatarEnabled}
+                initialSubtitlePosition={effectiveSubtitlePosition}
+                initialSubtitleSize={effectiveSubtitleSize}
               />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
