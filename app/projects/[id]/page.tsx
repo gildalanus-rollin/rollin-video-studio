@@ -456,8 +456,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 initialAvatarEnabled={effectiveAvatarEnabled}
                 initialSubtitlePosition={effectiveSubtitlePosition}
                 initialSubtitleSize={effectiveSubtitleSize}
-                initialSubtitlePosition={effectiveSubtitlePosition}
-                initialSubtitleSize={effectiveSubtitleSize}
               />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
