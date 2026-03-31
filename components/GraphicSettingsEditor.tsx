@@ -7,6 +7,7 @@ type Props = {
   projectId: string;
   initialGraphicTitleSize?: string | null;
   initialGraphicTitlePosition?: string | null;
+  initialAvatarEnabled?: boolean | null;
 };
 
 const sizeOptions = [
@@ -28,6 +29,7 @@ export default function GraphicSettingsEditor({
   projectId,
   initialGraphicTitleSize,
   initialGraphicTitlePosition,
+  initialAvatarEnabled,
 }: Props) {
   const router = useRouter();
   const [graphicTitleSize, setGraphicTitleSize] = useState(
@@ -35,6 +37,9 @@ export default function GraphicSettingsEditor({
   );
   const [graphicTitlePosition, setGraphicTitlePosition] = useState(
     initialGraphicTitlePosition || "bottom-left"
+  );
+  const [avatarEnabled, setAvatarEnabled] = useState(
+    initialAvatarEnabled ?? true
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -53,6 +58,7 @@ export default function GraphicSettingsEditor({
           projectId,
           graphicTitleSize,
           graphicTitlePosition,
+          avatarEnabled,
         }),
       });
 
@@ -84,7 +90,7 @@ export default function GraphicSettingsEditor({
         ajustes de gráfica
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">
             tamaño del título
@@ -116,6 +122,20 @@ export default function GraphicSettingsEditor({
                 {option.label}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            avatar
+          </label>
+          <select
+            value={avatarEnabled ? "on" : "off"}
+            onChange={(e) => setAvatarEnabled(e.target.value === "on")}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="on">mostrar</option>
+            <option value="off">ocultar</option>
           </select>
         </div>
       </div>

@@ -25,6 +25,7 @@ type Project = {
   narrative_preset?: string | null;
   graphic_title_size?: string | null;
   graphic_title_position?: string | null;
+  avatar_enabled?: boolean | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -45,7 +46,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, status, duration_limit_seconds, output_format, created_at, main_source_url, notes"
     )
     .eq("id", id)
     .single();
@@ -95,6 +96,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const effectiveGraphicTitlePosition =
     project.graphic_title_position ?? "bottom-left";
+
+  const effectiveAvatarEnabled =
+    project.avatar_enabled ?? true;
 
   let selectedImagePreviewUrl = "";
 
@@ -416,12 +420,14 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 narrativePreset={effectiveNarrativePreset}
                 graphicTitleSize={effectiveGraphicTitleSize}
                 graphicTitlePosition={effectiveGraphicTitlePosition}
+                avatarEnabled={effectiveAvatarEnabled}
               />
 
               <GraphicSettingsEditor
                 projectId={project.id}
                 initialGraphicTitleSize={effectiveGraphicTitleSize}
                 initialGraphicTitlePosition={effectiveGraphicTitlePosition}
+                initialAvatarEnabled={effectiveAvatarEnabled}
               />
 
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">

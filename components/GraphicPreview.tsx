@@ -5,6 +5,7 @@ type Props = {
   narrativePreset: string;
   graphicTitleSize?: string | null;
   graphicTitlePosition?: string | null;
+  avatarEnabled?: boolean | null;
 };
 
 function getAspectClass(outputFormat: string) {
@@ -56,8 +57,10 @@ export default function GraphicPreview({
   narrativePreset,
   graphicTitleSize,
   graphicTitlePosition,
+  avatarEnabled,
 }: Props) {
-  const showAvatar = narrativePreset === "titulo-resumen-foto-avatar";
+  const showAvatar =
+    narrativePreset === "titulo-resumen-foto-avatar" && Boolean(avatarEnabled);
 
   return (
     <div className="space-y-3">

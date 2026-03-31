@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from("projects")
-      .select("*, narrative_preset")
+      .select("*, narrative_preset, avatar_enabled")
       .eq("id", projectId)
       .single();
 
@@ -113,6 +113,7 @@ export async function POST(req: Request) {
       outputFormat,
       durationInSeconds,
       narrativePreset: data.narrative_preset || "titulo-resumen-foto",
+      avatarEnabled: data.avatar_enabled ?? true,
       outputFileName: fileName,
     });
 
@@ -148,6 +149,7 @@ export async function POST(req: Request) {
         outputFormatUsed: outputFormat,
         durationUsed: durationInSeconds,
         narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
+        avatarEnabledUsed: data.avatar_enabled ?? true,
       },
     });
   } catch (e: any) {

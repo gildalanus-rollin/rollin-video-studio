@@ -16,6 +16,7 @@ type Props = {
   music?: string | null;
   avatarVideo?: string | null;
   narrativePreset?: string;
+  avatarEnabled?: boolean;
 };
 
 const splitSummary = (text: string) => {
@@ -138,6 +139,7 @@ export const VideoComposition = ({
   music,
   avatarVideo,
   narrativePreset = "titulo-resumen-foto",
+  avatarEnabled = true,
 }: Props) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
@@ -180,7 +182,8 @@ export const VideoComposition = ({
           })
         : 0.18;
 
-  const showAvatar = narrativePreset === "titulo-resumen-foto-avatar";
+  const showAvatar =
+    narrativePreset === "titulo-resumen-foto-avatar" && avatarEnabled;
 
   return (
     <AbsoluteFill

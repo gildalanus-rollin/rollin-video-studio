@@ -11,6 +11,7 @@ type RenderVideoInput = {
   outputFormat?: string;
   durationInSeconds?: number;
   narrativePreset?: string;
+  avatarEnabled?: boolean;
   outputFileName?: string;
 };
 
@@ -33,6 +34,7 @@ export async function renderVideo(input: RenderVideoInput) {
     outputFormat: input.outputFormat ?? "16:9",
     durationInSeconds: input.durationInSeconds ?? 15,
     narrativePreset: input.narrativePreset ?? "titulo-resumen-foto",
+    avatarEnabled: input.avatarEnabled ?? true,
   };
 
   const composition = await selectComposition({
