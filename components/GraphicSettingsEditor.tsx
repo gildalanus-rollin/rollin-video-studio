@@ -8,6 +8,8 @@ type Props = {
   initialGraphicTitleSize?: string | null;
   initialGraphicTitlePosition?: string | null;
   initialAvatarEnabled?: boolean | null;
+  initialSubtitlePosition?: string | null;
+  initialSubtitleSize?: string | null;
 };
 
 const sizeOptions = [
@@ -30,6 +32,8 @@ export default function GraphicSettingsEditor({
   initialGraphicTitleSize,
   initialGraphicTitlePosition,
   initialAvatarEnabled,
+  initialSubtitlePosition,
+  initialSubtitleSize,
 }: Props) {
   const router = useRouter();
   const [graphicTitleSize, setGraphicTitleSize] = useState(
@@ -40,6 +44,12 @@ export default function GraphicSettingsEditor({
   );
   const [avatarEnabled, setAvatarEnabled] = useState(
     initialAvatarEnabled ?? true
+  );
+  const [subtitlePosition, setSubtitlePosition] = useState(
+    initialSubtitlePosition || "bottom-center"
+  );
+  const [subtitleSize, setSubtitleSize] = useState(
+    initialSubtitleSize || "md"
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -59,6 +69,8 @@ export default function GraphicSettingsEditor({
           graphicTitleSize,
           graphicTitlePosition,
           avatarEnabled,
+          subtitlePosition,
+          subtitleSize,
         }),
       });
 
@@ -90,7 +102,7 @@ export default function GraphicSettingsEditor({
         ajustes de gráfica
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">
             tamaño del título
@@ -136,6 +148,40 @@ export default function GraphicSettingsEditor({
           >
             <option value="on">mostrar</option>
             <option value="off">ocultar</option>
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            posición de subtítulos
+          </label>
+          <select
+            value={subtitlePosition}
+            onChange={(e) => setSubtitlePosition(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            {positionOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            tamaño de subtítulos
+          </label>
+          <select
+            value={subtitleSize}
+            onChange={(e) => setSubtitleSize(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            {sizeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>
