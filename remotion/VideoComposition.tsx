@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { getSubtitleBlockForFrame } from "@/lib/subtitles";
+import { getSubtitleBlockForFrame } from "../lib/subtitles";
 
 type Props = {
   title?: string;
