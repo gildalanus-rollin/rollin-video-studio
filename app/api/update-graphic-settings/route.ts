@@ -9,6 +9,8 @@ export async function POST(req: Request) {
       graphicTitleSize,
       graphicTitlePosition,
       avatarEnabled,
+      subtitlePosition,
+      subtitleSize,
     } = body;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -29,6 +31,8 @@ export async function POST(req: Request) {
         graphic_title_size: graphicTitleSize || "md",
         graphic_title_position: graphicTitlePosition || "bottom-left",
         avatar_enabled: Boolean(avatarEnabled),
+        subtitle_position: subtitlePosition || "bottom-center",
+        subtitle_size: subtitleSize || "md",
       })
       .eq("id", projectId);
 
