@@ -142,7 +142,14 @@ function getTitlePositionStyle(params: {
     case "top-left":
       return { ...base, top: 0, left: 0, alignItems: "flex-start" as const };
     case "top-center":
-      return { ...base, top: 0, left: 0, right: 0, justifyContent: "center" as const, alignItems: "center" as const };
+      return {
+        ...base,
+        top: 0,
+        left: 0,
+        right: 0,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+      };
     case "top-right":
       return { ...base, top: 0, right: 0, alignItems: "flex-end" as const };
     case "bottom-center":
@@ -181,18 +188,50 @@ function getSubtitlePositionStyle(position?: string | null) {
 
   switch (position) {
     case "top-left":
-      return { ...base, top: 28, left: 28, justifyContent: "flex-start" as const };
+      return {
+        ...base,
+        top: 28,
+        left: 28,
+        justifyContent: "flex-start" as const,
+      };
     case "top-center":
-      return { ...base, top: 28, left: 0, right: 0, justifyContent: "center" as const };
+      return {
+        ...base,
+        top: 28,
+        left: 0,
+        right: 0,
+        justifyContent: "center" as const,
+      };
     case "top-right":
-      return { ...base, top: 28, right: 28, justifyContent: "flex-end" as const };
+      return {
+        ...base,
+        top: 28,
+        right: 28,
+        justifyContent: "flex-end" as const,
+      };
     case "bottom-left":
-      return { ...base, bottom: 24, left: 28, justifyContent: "flex-start" as const };
+      return {
+        ...base,
+        bottom: 24,
+        left: 28,
+        justifyContent: "flex-start" as const,
+      };
     case "bottom-right":
-      return { ...base, bottom: 24, right: 28, justifyContent: "flex-end" as const };
+      return {
+        ...base,
+        bottom: 24,
+        right: 28,
+        justifyContent: "flex-end" as const,
+      };
     case "bottom-center":
     default:
-      return { ...base, bottom: 24, left: 0, right: 0, justifyContent: "center" as const };
+      return {
+        ...base,
+        bottom: 24,
+        left: 0,
+        right: 0,
+        justifyContent: "center" as const,
+      };
   }
 }
 
@@ -266,7 +305,7 @@ export const VideoComposition = ({
         : "16:9";
 
   const imageSrc =
-    image && (image.startsWith("http://") || image.startsWith(" || image.startsWith("https://"))
+    image && (image.startsWith("http://") || image.startsWith("https://"))
       ? image
       : null;
 
@@ -289,9 +328,12 @@ export const VideoComposition = ({
     frame < fps
       ? interpolate(frame, [0, fps], [0, 0.18], { extrapolateRight: "clamp" })
       : frame > durationInFrames - fps
-        ? interpolate(frame, [durationInFrames - fps, durationInFrames], [0.18, 0], {
-            extrapolateLeft: "clamp",
-          })
+        ? interpolate(
+            frame,
+            [durationInFrames - fps, durationInFrames],
+            [0.18, 0],
+            { extrapolateLeft: "clamp" }
+          )
         : 0.18;
 
   const showAvatar =
