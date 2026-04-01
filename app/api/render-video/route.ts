@@ -162,6 +162,8 @@ export async function POST(req: Request) {
         durationUsed: durationInSeconds,
         narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
         avatarEnabledUsed: data.avatar_enabled ?? true,
+        graphicTitleSizeUsed: data.graphic_title_size ?? "md",
+        graphicTitlePositionUsed: data.graphic_title_position ?? "bottom-left",
         subtitleEnabledUsed: data.subtitle_enabled ?? true,
         subtitlePositionUsed: data.subtitle_position ?? "bottom-center",
         subtitleSizeUsed: data.subtitle_size ?? "md",

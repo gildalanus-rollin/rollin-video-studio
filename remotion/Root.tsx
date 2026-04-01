@@ -27,6 +27,8 @@ export const RemotionRoot = () => {
         script: "",
         image: null,
         music: null,
+        outputFormat: "16:9",
+        durationInSeconds: 15,
         narrativePreset: "titulo-resumen-foto",
         avatarEnabled: true,
         graphicTitleSize: "md",

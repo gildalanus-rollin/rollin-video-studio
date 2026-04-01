@@ -14,7 +14,6 @@ type Props = {
   script?: string;
   image?: string | null;
   music?: string | null;
-  avatarVideo?: string | null;
   narrativePreset?: string;
   avatarEnabled?: boolean;
   graphicTitleSize?: string;
@@ -24,103 +23,52 @@ type Props = {
   subtitleSize?: string;
 };
 
-function getEffectiveTitleSize(
-  outputFormat: string,
-  requestedSize?: string | null
-) {
-  if (outputFormat === "1:1" && requestedSize === "lg") return "md";
-  if (outputFormat === "9:16" && requestedSize === "lg") return "md";
-  return requestedSize || "md";
+function getOutputFormat(width: number, height: number) {
+  if (width === 1080 && height === 1920) return "9:16";
+  if (width === 1080 && height === 1080) return "1:1";
+  return "16:9";
 }
 
-function getTitleFontSize(outputFormat: string, requestedSize?: string | null) {
-  const size = getEffectiveTitleSize(outputFormat, requestedSize);
-
-  if (outputFormat === "9:16") {
-    switch (size) {
-      case "sm":
-        return 42;
-      case "lg":
-        return 72;
-      case "md":
-      default:
-        return 58;
-    }
+function getTitleFontSize(format: string, size?: string) {
+  if (format === "9:16") {
+    if (size === "sm") return 42;
+    if (size === "lg") return 70;
+    return 56;
   }
-
-  if (outputFormat === "1:1") {
-    switch (size) {
-      case "sm":
-        return 50;
-      case "lg":
-        return 88;
-      case "md":
-      default:
-        return 68;
-    }
+  if (format === "1:1") {
+    if (size === "sm") return 50;
+    if (size === "lg") return 76;
+    return 62;
   }
-
-  switch (size) {
-    case "sm":
-      return 48;
-    case "lg":
-      return 88;
-    case "md":
-    default:
-      return 68;
-  }
+  if (size === "sm") return 46;
+  if (size === "lg") return 82;
+  return 64;
 }
 
-function getSubtitleFontSize(outputFormat: string, size?: string | null) {
-  if (outputFormat === "9:16") {
-    switch (size) {
-      case "sm":
-        return 24;
-      case "lg":
-        return 34;
-      case "md":
-      default:
-        return 28;
-    }
+function getSubtitleFontSize(format: string, size?: string) {
+  if (format === "9:16") {
+    if (size === "sm") return 24;
+    if (size === "lg") return 34;
+    return 28;
   }
-
-  switch (size) {
-    case "sm":
-      return 22;
-    case "lg":
-      return 34;
-    case "md":
-    default:
-      return 28;
-  }
+  if (size === "sm") return 22;
+  if (size === "lg") return 36;
+  return 28;
 }
 
-function getTitleLineHeight(outputFormat: string) {
-  if (outputFormat === "9:16") return 1.08;
-  if (outputFormat === "1:1") return 1.06;
-  return 1.05;
-}
-
-function getTitleBoxWidth(outputFormat: string) {
-  if (outputFormat === "9:16") return "78%";
-  if (outputFormat === "1:1") return "82%";
+function getTitleBoxWidth(format: string) {
+  if (format === "9:16") return "78%";
+  if (format === "1:1") return "82%";
   return "72%";
 }
 
-function getSubtitleBoxWidth(outputFormat: string) {
-  if (outputFormat === "9:16") return "78%";
-  if (outputFormat === "1:1") return "82%";
+function getSubtitleBoxWidth(format: string) {
+  if (format === "9:16") return "78%";
+  if (format === "1:1") return "82%";
   return "62%";
 }
 
-function getTitlePositionStyle(params: {
-  position?: string | null;
-  subtitleEnabled?: boolean;
-  subtitlePosition?: string | null;
-  outputFormat: string;
-}) {
-  const { position, subtitleEnabled, subtitlePosition, outputFormat } = params;
-
+function getTitlePositionStyle(position?: string, subtitleEnabled?: boolean, subtitlePosition?: string, format?: string) {
   const subtitleAtBottom =
     subtitleEnabled &&
     (subtitlePosition === "bottom-left" ||
@@ -129,7 +77,7 @@ function getTitlePositionStyle(params: {
       !subtitlePosition);
 
   const bottomOffset =
-    outputFormat === "9:16" ? 180 : outputFormat === "1:1" ? 170 : 120;
+    format === "9:16" ? 210 : format === "1:1" ? 185 : 130;
 
   const base = {
     position: "absolute" as const,
@@ -142,44 +90,20 @@ function getTitlePositionStyle(params: {
     case "top-left":
       return { ...base, top: 0, left: 0, alignItems: "flex-start" as const };
     case "top-center":
-      return {
-        ...base,
-        top: 0,
-        left: 0,
-        right: 0,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
-      };
+      return { ...base, top: 0, left: 0, right: 0, justifyContent: "center" as const, alignItems: "center" as const };
     case "top-right":
       return { ...base, top: 0, right: 0, alignItems: "flex-end" as const };
     case "bottom-center":
-      return {
-        ...base,
-        left: 0,
-        right: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
-      };
+      return { ...base, left: 0, right: 0, bottom: subtitleAtBottom ? bottomOffset : 0, justifyContent: "center" as const, alignItems: "center" as const };
     case "bottom-right":
-      return {
-        ...base,
-        right: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        alignItems: "flex-end" as const,
-      };
+      return { ...base, right: 0, bottom: subtitleAtBottom ? bottomOffset : 0, alignItems: "flex-end" as const };
     case "bottom-left":
     default:
-      return {
-        ...base,
-        left: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        alignItems: "flex-start" as const,
-      };
+      return { ...base, left: 0, bottom: subtitleAtBottom ? bottomOffset : 0, alignItems: "flex-start" as const };
   }
 }
 
-function getSubtitlePositionStyle(position?: string | null) {
+function getSubtitlePositionStyle(position?: string) {
   const base = {
     position: "absolute" as const,
     zIndex: 30,
@@ -188,50 +112,18 @@ function getSubtitlePositionStyle(position?: string | null) {
 
   switch (position) {
     case "top-left":
-      return {
-        ...base,
-        top: 28,
-        left: 28,
-        justifyContent: "flex-start" as const,
-      };
+      return { ...base, top: 32, left: 32, justifyContent: "flex-start" as const };
     case "top-center":
-      return {
-        ...base,
-        top: 28,
-        left: 0,
-        right: 0,
-        justifyContent: "center" as const,
-      };
+      return { ...base, top: 32, left: 0, right: 0, justifyContent: "center" as const };
     case "top-right":
-      return {
-        ...base,
-        top: 28,
-        right: 28,
-        justifyContent: "flex-end" as const,
-      };
+      return { ...base, top: 32, right: 32, justifyContent: "flex-end" as const };
     case "bottom-left":
-      return {
-        ...base,
-        bottom: 24,
-        left: 28,
-        justifyContent: "flex-start" as const,
-      };
+      return { ...base, bottom: 28, left: 32, justifyContent: "flex-start" as const };
     case "bottom-right":
-      return {
-        ...base,
-        bottom: 24,
-        right: 28,
-        justifyContent: "flex-end" as const,
-      };
+      return { ...base, bottom: 28, right: 32, justifyContent: "flex-end" as const };
     case "bottom-center":
     default:
-      return {
-        ...base,
-        bottom: 24,
-        left: 0,
-        right: 0,
-        justifyContent: "center" as const,
-      };
+      return { ...base, bottom: 28, left: 0, right: 0, justifyContent: "center" as const };
   }
 }
 
@@ -297,12 +189,7 @@ export const VideoComposition = ({
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
-  const outputFormat =
-    width === 1080 && height === 1920
-      ? "9:16"
-      : width === 1080 && height === 1080
-        ? "1:1"
-        : "16:9";
+  const outputFormat = getOutputFormat(width, height);
 
   const imageSrc =
     image && (image.startsWith("http://") || image.startsWith("https://"))
@@ -383,26 +270,21 @@ export const VideoComposition = ({
       />
 
       {musicSrc ? <Audio src={musicSrc} volume={musicVolume} /> : null}
-
       {showAvatar ? <AvatarWindow /> : null}
 
       <div
         style={{
-          ...getTitlePositionStyle({
-            position: graphicTitlePosition,
+          ...getTitlePositionStyle(
+            graphicTitlePosition,
             subtitleEnabled,
             subtitlePosition,
-            outputFormat,
-          }),
+            outputFormat
+          ),
           transform: `translateY(${(1 - titleEntrance) * 24}px)`,
           opacity: titleEntrance,
         }}
       >
-        <div
-          style={{
-            maxWidth: getTitleBoxWidth(outputFormat),
-          }}
-        >
+        <div style={{ maxWidth: getTitleBoxWidth(outputFormat) }}>
           <div
             style={{
               display: "inline-flex",
@@ -424,7 +306,7 @@ export const VideoComposition = ({
               marginTop: 14,
               fontWeight: 700,
               fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
-              lineHeight: getTitleLineHeight(outputFormat),
+              lineHeight: outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
               textShadow: "0 3px 18px rgba(0,0,0,0.35)",
             }}
           >
