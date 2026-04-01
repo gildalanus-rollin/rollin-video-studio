@@ -68,7 +68,14 @@ function getSubtitleBoxWidth(format: string) {
   return "62%";
 }
 
-function getTitlePositionStyle(position?: string, subtitleEnabled?: boolean, subtitlePosition?: string, format?: string) {
+function getTitlePositionStyle(params: {
+  position?: string | null;
+  subtitleEnabled?: boolean;
+  subtitlePosition?: string | null;
+  outputFormat: string;
+}) {
+  const { position, subtitleEnabled, subtitlePosition, outputFormat } = params;
+
   const subtitleAtBottom =
     subtitleEnabled &&
     (subtitlePosition === "bottom-left" ||
@@ -77,7 +84,7 @@ function getTitlePositionStyle(position?: string, subtitleEnabled?: boolean, sub
       !subtitlePosition);
 
   const bottomOffset =
-    format === "9:16" ? 210 : format === "1:1" ? 185 : 130;
+    outputFormat === "9:16" ? 210 : outputFormat === "1:1" ? 185 : 130;
 
   const base = {
     position: "absolute" as const,
@@ -90,40 +97,92 @@ function getTitlePositionStyle(position?: string, subtitleEnabled?: boolean, sub
     case "top-left":
       return { ...base, top: 0, left: 0, alignItems: "flex-start" as const };
     case "top-center":
-      return { ...base, top: 0, left: 0, right: 0, justifyContent: "center" as const, alignItems: "center" as const };
+      return {
+        ...base,
+        top: 0,
+        left: 0,
+        right: 0,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+      };
     case "top-right":
       return { ...base, top: 0, right: 0, alignItems: "flex-end" as const };
     case "bottom-center":
-      return { ...base, left: 0, right: 0, bottom: subtitleAtBottom ? bottomOffset : 0, justifyContent: "center" as const, alignItems: "center" as const };
+      return {
+        ...base,
+        left: 0,
+        right: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
+      };
     case "bottom-right":
-      return { ...base, right: 0, bottom: subtitleAtBottom ? bottomOffset : 0, alignItems: "flex-end" as const };
+      return {
+        ...base,
+        right: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        alignItems: "flex-end" as const,
+      };
     case "bottom-left":
     default:
-      return { ...base, left: 0, bottom: subtitleAtBottom ? bottomOffset : 0, alignItems: "flex-start" as const };
+      return {
+        ...base,
+        left: 0,
+        bottom: subtitleAtBottom ? bottomOffset : 0,
+        alignItems: "flex-start" as const,
+      };
   }
 }
 
-function getSubtitlePositionStyle(position?: string) {
+function getSubtitlePositionStyle(position?: string | null) {
   const base = {
     position: "absolute" as const,
     zIndex: 30,
     display: "flex",
+    left: 0,
+    right: 0,
+    paddingLeft: 32,
+    paddingRight: 32,
   };
 
   switch (position) {
     case "top-left":
-      return { ...base, top: 32, left: 32, justifyContent: "flex-start" as const };
+      return {
+        ...base,
+        top: 28,
+        justifyContent: "flex-start" as const,
+      };
     case "top-center":
-      return { ...base, top: 32, left: 0, right: 0, justifyContent: "center" as const };
+      return {
+        ...base,
+        top: 28,
+        justifyContent: "center" as const,
+      };
     case "top-right":
-      return { ...base, top: 32, right: 32, justifyContent: "flex-end" as const };
+      return {
+        ...base,
+        top: 28,
+        justifyContent: "flex-end" as const,
+      };
     case "bottom-left":
-      return { ...base, bottom: 28, left: 32, justifyContent: "flex-start" as const };
+      return {
+        ...base,
+        bottom: 28,
+        justifyContent: "flex-start" as const,
+      };
     case "bottom-right":
-      return { ...base, bottom: 28, right: 32, justifyContent: "flex-end" as const };
+      return {
+        ...base,
+        bottom: 28,
+        justifyContent: "flex-end" as const,
+      };
     case "bottom-center":
     default:
-      return { ...base, bottom: 28, left: 0, right: 0, justifyContent: "center" as const };
+      return {
+        ...base,
+        bottom: 28,
+        justifyContent: "center" as const,
+      };
   }
 }
 
@@ -306,7 +365,8 @@ export const VideoComposition = ({
               marginTop: 14,
               fontWeight: 700,
               fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
-              lineHeight: outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
+              lineHeight:
+                outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
               textShadow: "0 3px 18px rgba(0,0,0,0.35)",
             }}
           >
