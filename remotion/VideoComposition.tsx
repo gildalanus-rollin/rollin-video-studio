@@ -333,12 +333,12 @@ export const VideoComposition = ({
 
       <div
         style={{
-          ...getTitlePositionStyle(
-            graphicTitlePosition,
+          ...getTitlePositionStyle({
+            position: graphicTitlePosition,
             subtitleEnabled,
             subtitlePosition,
-            outputFormat
-          ),
+            outputFormat,
+          }),
           transform: `translateY(${(1 - titleEntrance) * 24}px)`,
           opacity: titleEntrance,
         }}
