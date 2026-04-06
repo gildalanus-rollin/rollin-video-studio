@@ -8,7 +8,8 @@ function getEnv(name: string): string | undefined {
 export function getSupabaseAdmin() {
   const supabaseUrl = getEnv("NEXT_PUBLIC_SUPABASE_URL");
 
-  const serviceRoleKey =
+  const adminKey =
+    getEnv("SUPABASE_SECRET_KEY") ||
     getEnv("SUPABASE_SERVICE_ROLE_KEY") ||
     getEnv("SUPABASE_SERVICE_ROLE") ||
     getEnv("SUPABASE_SERVICE_ROLE_SECRET");
@@ -17,11 +18,11 @@ export function getSupabaseAdmin() {
     throw new Error("Falta NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  if (!serviceRoleKey) {
-    throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor");
+  if (!adminKey) {
+    throw new Error("Falta clave admin de Supabase en el servidor");
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient(supabaseUrl, adminKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
