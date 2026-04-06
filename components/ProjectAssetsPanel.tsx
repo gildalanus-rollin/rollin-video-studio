@@ -21,6 +21,8 @@ export default function ProjectAssetsPanel({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [updatingPrimaryId, setUpdatingPrimaryId] = useState<string | null>(null);
+  const [movingId, setMovingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -117,6 +119,72 @@ export default function ProjectAssetsPanel({
     }
   }
 
+  async function handleMove(assetId: string, direction: "up" | "down") {
+    try {
+      setMovingId(assetId);
+      setError("");
+
+      const response = await fetch(
+        `/api/projects/${projectId}/assets/${assetId}/move`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ direction }),
+        }
+      );
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json?.error || "No se pudo reordenar la imagen");
+      }
+
+      await loadAssets();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al reordenar la imagen"
+      );
+    } finally {
+      setMovingId(null);
+    }
+  }
+
+  async function handleDelete(assetId: string) {
+    const confirmed = window.confirm(
+      "¿Querés eliminar esta foto del proyecto?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(assetId);
+      setError("");
+
+      const response = await fetch(
+        `/api/projects/${projectId}/assets/${assetId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json?.error || "No se pudo eliminar la imagen");
+      }
+
+      await loadAssets();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al eliminar la imagen"
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -125,8 +193,8 @@ export default function ProjectAssetsPanel({
             fotos del proyecto
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            Podés cargar varias imágenes. El render usará la imagen marcada como
-            principal.
+            Podés cargar varias imágenes, elegir una principal y ordenar la
+            secuencia base del proyecto.
           </p>
         </div>
 
@@ -157,55 +225,93 @@ export default function ProjectAssetsPanel({
         </p>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-          {assets.map((asset) => (
-            <div
-              key={asset.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
-            >
-              {asset.resolved_url ? (
-                <img
-                  src={asset.resolved_url}
-                  alt={asset.original_filename || asset.label || "foto del proyecto"}
-                  className="aspect-video w-full object-cover"
-                />
-              ) : (
-                <div className="flex aspect-video items-center justify-center bg-slate-100 text-sm text-slate-400">
-                  sin preview
-                </div>
-              )}
+          {assets.map((asset, index) => {
+            const isFirst = index === 0;
+            const isLast = index === assets.length - 1;
+            const isBusy =
+              updatingPrimaryId === asset.id ||
+              movingId === asset.id ||
+              deletingId === asset.id;
 
-              <div className="space-y-3 p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                    orden {asset.sort_order}
-                  </span>
+            return (
+              <div
+                key={asset.id}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+              >
+                {asset.resolved_url ? (
+                  <img
+                    src={asset.resolved_url}
+                    alt={asset.original_filename || asset.label || "foto del proyecto"}
+                    className="aspect-video w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-video items-center justify-center bg-slate-100 text-sm text-slate-400">
+                    sin preview
+                  </div>
+                )}
 
-                  {asset.is_primary ? (
-                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
-                      principal
+                <div className="space-y-3 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                      orden {asset.sort_order}
                     </span>
-                  ) : null}
+
+                    {asset.is_primary ? (
+                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                        principal
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {asset.original_filename || asset.label || "imagen"}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleSetPrimary(asset.id)}
+                      disabled={asset.is_primary || isBusy}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {asset.is_primary
+                        ? "principal"
+                        : updatingPrimaryId === asset.id
+                        ? "guardando..."
+                        : "marcar principal"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(asset.id)}
+                      disabled={isBusy}
+                      className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {deletingId === asset.id ? "eliminando..." : "eliminar"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleMove(asset.id, "up")}
+                      disabled={isFirst || isBusy}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {movingId === asset.id ? "moviendo..." : "subir"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleMove(asset.id, "down")}
+                      disabled={isLast || isBusy}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {movingId === asset.id ? "moviendo..." : "bajar"}
+                    </button>
+                  </div>
                 </div>
-
-                <p className="truncate text-sm font-medium text-slate-900">
-                  {asset.original_filename || asset.label || "imagen"}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => void handleSetPrimary(asset.id)}
-                  disabled={asset.is_primary || updatingPrimaryId === asset.id}
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {asset.is_primary
-                    ? "imagen principal"
-                    : updatingPrimaryId === asset.id
-                    ? "guardando..."
-                    : "marcar principal"}
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
