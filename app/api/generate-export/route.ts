@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+type ProjectAsset = {
+  id: string;
+  project_id: string;
+  asset_type: string;
+  source_type: string;
+  value: string;
+  label: string;
+  sort_order: number;
+  is_selected: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  file_size_bytes: number | null;
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
+  is_primary: boolean;
+  status: string;
+  updated_at: string;
+};
 
 export async function POST(req: Request) {
   try {
@@ -11,10 +35,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    );
+    const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
       .from("projects")
@@ -28,12 +49,50 @@ export async function POST(req: Request) {
 
     const parsed = parseProjectNotes(data.notes);
 
+    const { data: assetRows, error: assetsError } = await supabase
+      .from("project_assets")
+      .select("*")
+      .eq("project_id", projectId)
+      .eq("asset_type", "image")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (assetsError) {
+      return NextResponse.json({ error: assetsError.message }, { status: 500 });
+    }
+
+    const assets = (assetRows ?? []) as ProjectAsset[];
+
+    const selectedAsset =
+      assets.find((asset) => asset.is_primary) ??
+      assets[0] ??
+      null;
+
+    let resolvedImage = parsed.selectedImage || "";
+
+    if (selectedAsset) {
+      if (selectedAsset.storage_bucket && selectedAsset.storage_path) {
+        const { data: publicUrlData } = supabase.storage
+          .from(selectedAsset.storage_bucket)
+          .getPublicUrl(selectedAsset.storage_path);
+
+        resolvedImage = publicUrlData.publicUrl;
+      } else if (selectedAsset.source_type === "url" && selectedAsset.value) {
+        resolvedImage = selectedAsset.value;
+      } else if (selectedAsset.value) {
+        resolvedImage = selectedAsset.value;
+      }
+    }
+
     const exportData = {
       title: data.title,
-      script: parsed.summary,
+      summary: parsed.summary,
+      script:
+        (typeof data.render_script === "string" && data.render_script.trim()) ||
+        parsed.summary,
       mainSource: data.main_source_url,
       secondarySources: parsed.secondarySources,
-      image: parsed.selectedImage,
+      image: resolvedImage,
       video: parsed.selectedVideo,
       music: parsed.selectedMusic,
       createdAt: new Date().toISOString(),
