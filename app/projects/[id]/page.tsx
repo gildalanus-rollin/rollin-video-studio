@@ -17,6 +17,7 @@ import RenderScriptEditor from "@/components/RenderScriptEditor";
 import GraphicPreview from "@/components/GraphicPreview";
 import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
 import ProjectAssetsPanel from "@/components/ProjectAssetsPanel";
+import ProjectVisualSequencePanel from "@/components/ProjectVisualSequencePanel";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
 type Project = {
@@ -260,6 +261,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               </div>
 
               <ProjectAssetsPanel projectId={project.id} />
+
+              <ProjectVisualSequencePanel projectId={project.id} />
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
