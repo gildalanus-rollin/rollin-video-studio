@@ -20,6 +20,7 @@ export default function ProjectAssetsPanel({
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [updatingPrimaryId, setUpdatingPrimaryId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -86,6 +87,36 @@ export default function ProjectAssetsPanel({
     }
   }
 
+  async function handleSetPrimary(assetId: string) {
+    try {
+      setUpdatingPrimaryId(assetId);
+      setError("");
+
+      const response = await fetch(
+        `/api/projects/${projectId}/assets/${assetId}/primary`,
+        {
+          method: "POST",
+        }
+      );
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json?.error || "No se pudo marcar la imagen principal");
+      }
+
+      await loadAssets();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error al marcar la imagen principal"
+      );
+    } finally {
+      setUpdatingPrimaryId(null);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -94,8 +125,8 @@ export default function ProjectAssetsPanel({
             fotos del proyecto
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            Podés cargar varias imágenes. Por ahora el render seguirá usando una
-            sola imagen principal.
+            Podés cargar varias imágenes. El render usará la imagen marcada como
+            principal.
           </p>
         </div>
 
@@ -143,7 +174,7 @@ export default function ProjectAssetsPanel({
                 </div>
               )}
 
-              <div className="space-y-2 p-3">
+              <div className="space-y-3 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
                     orden {asset.sort_order}
@@ -159,6 +190,19 @@ export default function ProjectAssetsPanel({
                 <p className="truncate text-sm font-medium text-slate-900">
                   {asset.original_filename || asset.label || "imagen"}
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => void handleSetPrimary(asset.id)}
+                  disabled={asset.is_primary || updatingPrimaryId === asset.id}
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {asset.is_primary
+                    ? "imagen principal"
+                    : updatingPrimaryId === asset.id
+                    ? "guardando..."
+                    : "marcar principal"}
+                </button>
               </div>
             </div>
           ))}
