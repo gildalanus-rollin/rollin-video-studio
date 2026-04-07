@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ProjectTitleEditor from "@/components/ProjectTitleEditor";
 import ProjectSummaryEditor from "@/components/ProjectSummaryEditor";
-import ExternalMediaLinksEditor from "@/components/ExternalMediaLinksEditor";
+import ProjectLegacyMediaPanel from "@/components/ProjectLegacyMediaPanel";
 import ClearMainSourceButton from "@/components/ClearMainSourceButton";
 import RemoveSecondarySourceButton from "@/components/RemoveSecondarySourceButton";
 import GenerateExportButton from "@/components/GenerateExportButton";
@@ -313,34 +313,17 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <details className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4">
-                <summary className="cursor-pointer text-sm font-medium text-slate-700">
-                  herramientas legacy y enlaces externos
-                </summary>
-
-                <div className="mt-4 space-y-4">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      imagen externa por link
-                    </p>
-                    <p className="mt-2 break-all text-sm text-slate-600">
-                      {externalImageUrl || "sin link externo"}
-                    </p>
-                  </div>
-
-                  <ExternalMediaLinksEditor
-                    projectId={project.id}
-                    initialSecondarySources={secondarySources}
-                    initialSummary={summary}
-                    initialSelectedImage={selectedImage}
-                    initialSelectedVideo={selectedVideo}
-                    initialSelectedMusic={selectedMusic}
-                    initialExternalImageUrl={externalImageUrl}
-                    initialExternalVideoUrl={externalVideoUrl}
-                    initialNarrationMode={narrationMode}
-                  />
-                </div>
-              </details>
+              <ProjectLegacyMediaPanel
+                projectId={project.id}
+                secondarySources={secondarySources}
+                summary={summary}
+                selectedImage={selectedImage}
+                selectedVideo={selectedVideo}
+                selectedMusic={selectedMusic}
+                externalImageUrl={externalImageUrl}
+                externalVideoUrl={externalVideoUrl}
+                narrationMode={narrationMode}
+              />
             </div>
           </section>
 
