@@ -183,8 +183,7 @@ export default function ProjectVisualSequencePanel({
             secuencia visual
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            Define el orden narrativo base de las imágenes del proyecto, separado
-            de la biblioteca de assets.
+            Define el orden narrativo base de las imágenes del proyecto.
           </p>
         </div>
 
@@ -213,7 +212,7 @@ export default function ProjectVisualSequencePanel({
           Todavía no hay secuencia visual creada para este proyecto.
         </p>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-4">
           {rows.map((row, index) => {
             const isFirst = index === 0;
             const isLast = index === rows.length - 1;
@@ -221,13 +220,18 @@ export default function ProjectVisualSequencePanel({
             const isMoving = movingId === row.id;
             const isBusy = isUpdating || isMoving;
 
+            const toggleClass = (active: boolean) =>
+              active
+                ? "border-slate-900 bg-slate-900 text-white"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100";
+
             return (
               <div
                 key={row.id}
-                className="rounded-2xl border border-slate-200 bg-white p-3"
+                className="rounded-2xl border border-slate-200 bg-white p-4"
               >
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-                  <div className="w-full max-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                <div className="grid gap-4 xl:grid-cols-[260px_1fr]">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
                     {row.resolved_url ? (
                       <img
                         src={row.resolved_url}
@@ -245,30 +249,32 @@ export default function ProjectVisualSequencePanel({
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                        orden {row.sequence_order}
-                      </span>
-
-                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                        {row.scene_type}
-                      </span>
-
-                      {row.asset?.is_primary ? (
-                        <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
-                          asset principal
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                          orden {row.sequence_order}
                         </span>
-                      ) : null}
+
+                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                          {row.scene_type}
+                        </span>
+
+                        {row.asset?.is_primary ? (
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                            asset principal
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <p className="text-sm font-medium text-slate-900">
+                        {row.asset?.original_filename || row.asset?.label || "asset"}
+                      </p>
                     </div>
 
-                    <p className="truncate text-sm font-medium text-slate-900">
-                      {row.asset?.original_filename || row.asset?.label || "asset"}
-                    </p>
-
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 md:grid-cols-2">
                       <label className="space-y-1 text-sm">
-                        <span className="block text-slate-600">role</span>
+                        <span className="block text-slate-600">rol editorial</span>
                         <select
                           value={row.role}
                           disabled={isBusy}
@@ -286,7 +292,7 @@ export default function ProjectVisualSequencePanel({
                       </label>
 
                       <label className="space-y-1 text-sm">
-                        <span className="block text-slate-600">motion</span>
+                        <span className="block text-slate-600">movimiento</span>
                         <select
                           value={row.motion_preset}
                           disabled={isBusy}
@@ -304,58 +310,65 @@ export default function ProjectVisualSequencePanel({
                           ))}
                         </select>
                       </label>
+                    </div>
 
-                      <div className="grid gap-2 sm:grid-cols-3 md:col-span-2 xl:col-span-1">
-                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={row.overlay_title}
-                            disabled={isBusy}
-                            onChange={(event) =>
-                              void patchRow(row.id, {
-                                overlay_title: event.target.checked,
-                              })
-                            }
-                          />
-                          title
-                        </label>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-600">overlays</p>
 
-                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={row.overlay_subtitles}
-                            disabled={isBusy}
-                            onChange={(event) =>
-                              void patchRow(row.id, {
-                                overlay_subtitles: event.target.checked,
-                              })
-                            }
-                          />
-                          subtitles
-                        </label>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void patchRow(row.id, {
+                              overlay_title: !row.overlay_title,
+                            })
+                          }
+                          className={`rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${toggleClass(
+                            row.overlay_title
+                          )}`}
+                        >
+                          título
+                        </button>
 
-                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={row.overlay_avatar}
-                            disabled={isBusy}
-                            onChange={(event) =>
-                              void patchRow(row.id, {
-                                overlay_avatar: event.target.checked,
-                              })
-                            }
-                          />
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void patchRow(row.id, {
+                              overlay_subtitles: !row.overlay_subtitles,
+                            })
+                          }
+                          className={`rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${toggleClass(
+                            row.overlay_subtitles
+                          )}`}
+                        >
+                          subtítulos
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void patchRow(row.id, {
+                              overlay_avatar: !row.overlay_avatar,
+                            })
+                          }
+                          className={`rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${toggleClass(
+                            row.overlay_avatar
+                          )}`}
+                        >
                           avatar
-                        </label>
+                        </button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 sm:max-w-[260px]">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => void moveRow(row.id, "up")}
                         disabled={isFirst || isBusy}
-                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-w-[120px] items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isMoving ? "moviendo..." : "subir"}
                       </button>
@@ -364,7 +377,7 @@ export default function ProjectVisualSequencePanel({
                         type="button"
                         onClick={() => void moveRow(row.id, "down")}
                         disabled={isLast || isBusy}
-                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-w-[120px] items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isMoving ? "moviendo..." : "bajar"}
                       </button>

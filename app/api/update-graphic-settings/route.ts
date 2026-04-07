@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -13,17 +15,14 @@ export async function POST(req: Request) {
       subtitleSize,
     } = body;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!projectId) {
       return NextResponse.json(
-        { error: "Faltan variables de entorno de Supabase en el servidor." },
-        { status: 500 }
+        { error: "Falta projectId" },
+        { status: 400 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = getSupabaseAdmin();
 
     const { error } = await supabase
       .from("projects")
@@ -41,9 +40,14 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Error actualizando ajustes de gráfica" },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error actualizando ajustes de gráfica",
+      },
       { status: 500 }
     );
   }
