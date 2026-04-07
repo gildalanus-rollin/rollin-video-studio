@@ -7,8 +7,7 @@ import ProjectSummaryEditor from "@/components/ProjectSummaryEditor";
 import ProjectEditorialPanel from "@/components/ProjectEditorialPanel";
 import ProjectMaterialPanel from "@/components/ProjectMaterialPanel";
 import GenerateExportButton from "@/components/GenerateExportButton";
-import GraphicPreview from "@/components/GraphicPreview";
-import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
+import ProjectGraphicPanel from "@/components/ProjectGraphicPanel";
 import { parseProjectNotes } from "@/lib/projectNotes";
 
 type Project = {
@@ -236,44 +235,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             renderScript={project.render_script ?? summary}
           />
 
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              3. gráfica
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              vista editorial y ajustes visuales
-            </h2>
-
-            <div className="mt-5 space-y-4">
-              <GraphicPreview
-                title={project.title}
-                imageUrl={previewImageUrl}
-                outputFormat={project.output_format}
-                narrativePreset={effectiveNarrativePreset}
-                graphicTitleSize={effectiveGraphicTitleSize}
-                graphicTitlePosition={effectiveGraphicTitlePosition}
-                avatarEnabled={effectiveAvatarEnabled}
-                subtitleEnabled={effectiveSubtitleEnabled}
-                subtitlePosition={effectiveSubtitlePosition}
-                subtitleSize={effectiveSubtitleSize}
-                subtitleText={previewSubtitleText}
-              />
-
-              <GraphicSettingsEditor
-                projectId={project.id}
-                initialGraphicTitleSize={effectiveGraphicTitleSize}
-                initialGraphicTitlePosition={effectiveGraphicTitlePosition}
-                initialAvatarEnabled={effectiveAvatarEnabled}
-                initialSubtitlePosition={effectiveSubtitlePosition}
-                initialSubtitleSize={effectiveSubtitleSize}
-              />
-
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                Este bloque usa como base la imagen principal del proyecto y el
-                guion de render para que la lectura editorial sea más consistente.
-              </div>
-            </div>
-          </section>
+          <ProjectGraphicPanel
+            projectId={project.id}
+            title={project.title}
+            imageUrl={previewImageUrl}
+            outputFormat={project.output_format}
+            narrativePreset={effectiveNarrativePreset}
+            graphicTitleSize={effectiveGraphicTitleSize}
+            graphicTitlePosition={effectiveGraphicTitlePosition}
+            avatarEnabled={effectiveAvatarEnabled}
+            subtitleEnabled={effectiveSubtitleEnabled}
+            subtitlePosition={effectiveSubtitlePosition}
+            subtitleSize={effectiveSubtitleSize}
+            subtitleText={previewSubtitleText}
+          />
 
           <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
