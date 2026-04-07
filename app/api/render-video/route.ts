@@ -1,7 +1,48 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { parseProjectNotes } from "@/lib/projectNotes";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import fs from "fs/promises";
+
+type ProjectAsset = {
+  id: string;
+  project_id: string;
+  asset_type: string;
+  source_type: string;
+  value: string;
+  label: string;
+  sort_order: number;
+  is_selected: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  file_size_bytes: number | null;
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
+  is_primary: boolean;
+  status: string;
+  updated_at: string;
+};
+
+type VisualSequenceRow = {
+  id: string;
+  project_id: string;
+  asset_id: string | null;
+  sequence_order: number;
+  scene_type: string;
+  role: string;
+  motion_preset: string;
+  duration_ratio: number;
+  overlay_title: boolean;
+  overlay_subtitles: boolean;
+  overlay_avatar: boolean;
+  created_at: string;
+  updated_at?: string;
+  asset?: ProjectAsset | null;
+};
 
 function safeFileName(value: string) {
   return value
@@ -12,8 +53,29 @@ function safeFileName(value: string) {
     .toLowerCase();
 }
 
+function resolveAssetUrl(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  asset: Pick<ProjectAsset, "storage_bucket" | "storage_path" | "source_type" | "value"> | null
+) {
+  if (!asset) return "";
+
+  if (asset.storage_bucket && asset.storage_path) {
+    const { data } = supabase.storage
+      .from(asset.storage_bucket)
+      .getPublicUrl(asset.storage_path);
+
+    return data.publicUrl;
+  }
+
+  if (asset.source_type === "url" && asset.value) {
+    return asset.value;
+  }
+
+  return asset.value || "";
+}
+
 async function resolveStorageUrl(
-  supabase: any,
+  supabase: ReturnType<typeof getSupabaseAdmin>,
   rawValue: string | null | undefined,
   bucketName: string
 ) {
@@ -42,28 +104,18 @@ async function resolveStorageUrl(
   return data.signedUrl;
 }
 
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { projectId } = body;
+    const { projectId, disableMusic } = body;
 
     if (!projectId) {
       return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !publishableKey || !serviceRoleKey) {
-      return NextResponse.json(
-        { error: "Faltan variables de entorno de Supabase en el servidor." },
-        { status: 500 }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, publishableKey);
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
       .from("projects")
@@ -86,19 +138,74 @@ export async function POST(req: Request) {
 
     const fileName = `${baseName}-${stamp}.mp4`;
 
-    const internalImageUrl = await resolveStorageUrl(
-      supabaseAdmin,
-      parsed.selectedImage,
-      "images"
-    );
+    let fallbackImageUrl = parsed.externalImageUrl || null;
 
-    const imageUrl = internalImageUrl || parsed.externalImageUrl || null;
+    const { data: assetRows, error: assetsError } = await supabase
+      .from("project_assets")
+      .select("*")
+      .eq("project_id", projectId)
+      .eq("asset_type", "image")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
 
-    const musicUrl = await resolveStorageUrl(
-      supabaseAdmin,
-      parsed.selectedMusic,
-      "music"
-    );
+    if (!assetsError) {
+      const assets = (assetRows ?? []) as ProjectAsset[];
+      const selectedAsset =
+        assets.find((asset) => asset.is_primary) ??
+        assets[0] ??
+        null;
+
+      if (selectedAsset) {
+        fallbackImageUrl = resolveAssetUrl(supabase, selectedAsset);
+      }
+    } else {
+      const internalImageUrl = await resolveStorageUrl(
+        supabase,
+        parsed.selectedImage,
+        "images"
+      );
+      fallbackImageUrl = internalImageUrl || parsed.externalImageUrl || null;
+    }
+
+    const { data: visualSequenceRows, error: sequenceError } = await supabase
+      .from("project_visual_sequence")
+      .select(`
+        *,
+        asset:project_assets (*)
+      `)
+      .eq("project_id", projectId)
+      .order("sequence_order", { ascending: true });
+
+    const visualSequence = !sequenceError
+      ? ((visualSequenceRows ?? []) as VisualSequenceRow[]).map((row) => ({
+          id: row.id,
+          sequenceOrder: row.sequence_order,
+          sceneType: row.scene_type,
+          role: row.role,
+          motionPreset: row.motion_preset,
+          durationRatio: row.duration_ratio,
+          overlayTitle: row.overlay_title,
+          overlaySubtitles: row.overlay_subtitles,
+          overlayAvatar: row.overlay_avatar,
+          asset: row.asset
+            ? {
+                id: row.asset.id,
+                label: row.asset.label || "",
+                originalFilename: row.asset.original_filename || "",
+                isPrimary: row.asset.is_primary,
+                url: resolveAssetUrl(supabase, row.asset),
+              }
+            : null,
+        }))
+      : [];
+
+    const musicUrl = disableMusic
+      ? null
+      : await resolveStorageUrl(
+          supabase,
+          parsed.selectedMusic,
+          "music"
+        );
 
     const outputFormat = data.output_format || "16:9";
     const durationInSeconds = Number(data.duration_limit_seconds) || 15;
@@ -115,7 +222,7 @@ export async function POST(req: Request) {
     const result = await renderVideo({
       title: data.title,
       script: finalScript,
-      image: imageUrl,
+      image: fallbackImageUrl,
       music: musicUrl,
       outputFormat,
       durationInSeconds,
@@ -127,11 +234,12 @@ export async function POST(req: Request) {
       subtitlePosition: data.subtitle_position ?? "bottom-center",
       subtitleSize: data.subtitle_size ?? "md",
       outputFileName: fileName,
+      visualSequence,
     });
 
     const fileBuffer = await fs.readFile(result.outputLocation);
 
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { error: uploadError } = await supabase.storage
       .from("videos")
       .upload(fileName, fileBuffer, {
         contentType: "video/mp4",
@@ -146,7 +254,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: publicUrlData } = supabaseAdmin.storage
+    const { data: publicUrlData } = supabase.storage
       .from("videos")
       .getPublicUrl(fileName);
 
@@ -156,7 +264,7 @@ export async function POST(req: Request) {
       outputLocation: result.outputLocation,
       url: publicUrlData.publicUrl,
       debug: {
-        imageUsed: imageUrl,
+        imageUsed: fallbackImageUrl,
         musicUsed: musicUrl,
         outputFormatUsed: outputFormat,
         durationUsed: durationInSeconds,
@@ -168,6 +276,7 @@ export async function POST(req: Request) {
         subtitlePositionUsed: data.subtitle_position ?? "bottom-center",
         subtitleSizeUsed: data.subtitle_size ?? "md",
         renderScriptUsed: finalScript,
+        visualSequenceCount: visualSequence.length,
       },
     });
   } catch (e: any) {

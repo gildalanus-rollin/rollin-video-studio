@@ -9,6 +9,25 @@ import {
 } from "remotion";
 import { getSubtitleBlockForFrame } from "../lib/subtitles";
 
+type VisualSequenceScene = {
+  id: string;
+  sequenceOrder: number;
+  sceneType: string;
+  role: string;
+  motionPreset: string;
+  durationRatio: number;
+  overlayTitle: boolean;
+  overlaySubtitles: boolean;
+  overlayAvatar: boolean;
+  asset: {
+    id: string;
+    label: string;
+    originalFilename: string;
+    isPrimary: boolean;
+    url: string;
+  } | null;
+};
+
 type Props = {
   title?: string;
   script?: string;
@@ -21,6 +40,7 @@ type Props = {
   subtitleEnabled?: boolean;
   subtitlePosition?: string;
   subtitleSize?: string;
+  visualSequence?: VisualSequenceScene[];
 };
 
 function getOutputFormat(width: number, height: number) {
@@ -232,6 +252,85 @@ const AvatarWindow = () => {
   );
 };
 
+function getSceneForFrame(
+  visualSequence: VisualSequenceScene[],
+  frame: number,
+  durationInFrames: number
+) {
+  if (!visualSequence.length) return null;
+
+  const totalRatio = visualSequence.reduce(
+    (sum, scene) => sum + Math.max(scene.durationRatio || 1, 0.0001),
+    0
+  );
+
+  let accumulated = 0;
+
+  for (let index = 0; index < visualSequence.length; index++) {
+    const scene = visualSequence[index];
+    const ratio = Math.max(scene.durationRatio || 1, 0.0001);
+    const sceneFrames =
+      index === visualSequence.length - 1
+        ? durationInFrames - accumulated
+        : Math.max(1, Math.round((ratio / totalRatio) * durationInFrames));
+
+    const startFrame = accumulated;
+    const endFrame = accumulated + sceneFrames;
+
+    if (frame >= startFrame && frame < endFrame) {
+      return {
+        scene,
+        sceneFrame: frame - startFrame,
+        sceneDurationInFrames: sceneFrames,
+      };
+    }
+
+    accumulated = endFrame;
+  }
+
+  const lastScene = visualSequence[visualSequence.length - 1];
+  return {
+    scene: lastScene,
+    sceneFrame: 0,
+    sceneDurationInFrames: durationInFrames,
+  };
+}
+
+function getSceneImageStyle(
+  motionPreset: string | undefined,
+  sceneFrame: number,
+  sceneDurationInFrames: number
+) {
+  const progress =
+    sceneDurationInFrames > 1
+      ? sceneFrame / Math.max(sceneDurationInFrames - 1, 1)
+      : 0;
+
+  const zoomIn = interpolate(progress, [0, 1], [1, 1.08]);
+  const zoomOut = interpolate(progress, [0, 1], [1.08, 1]);
+  const panX = interpolate(progress, [0, 1], [0, -40]);
+
+  switch (motionPreset) {
+    case "zoom-in":
+      return {
+        transform: `scale(${zoomIn})`,
+      };
+    case "zoom-out":
+      return {
+        transform: `scale(${zoomOut})`,
+      };
+    case "pan":
+      return {
+        transform: `scale(1.05) translateX(${panX}px)`,
+      };
+    case "static":
+    default:
+      return {
+        transform: "scale(1)",
+      };
+  }
+}
+
 export const VideoComposition = ({
   title = "Rollin Video Studio",
   script = "",
@@ -244,13 +343,14 @@ export const VideoComposition = ({
   subtitleEnabled = true,
   subtitlePosition = "bottom-center",
   subtitleSize = "md",
+  visualSequence = [],
 }: Props) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
   const outputFormat = getOutputFormat(width, height);
 
-  const imageSrc =
+  const fallbackImageSrc =
     image && (image.startsWith("http://") || image.startsWith("https://"))
       ? image
       : null;
@@ -282,7 +382,7 @@ export const VideoComposition = ({
           )
         : 0.18;
 
-  const showAvatar =
+  const showAvatarGlobal =
     narrativePreset === "titulo-resumen-foto-avatar" && avatarEnabled;
 
   const currentSubtitle = subtitleEnabled
@@ -293,6 +393,32 @@ export const VideoComposition = ({
       })
     : "";
 
+  const currentSceneData = getSceneForFrame(visualSequence, frame, durationInFrames);
+  const currentScene = currentSceneData?.scene ?? null;
+  const currentSceneImageSrc =
+    currentScene?.asset?.url &&
+    (currentScene.asset.url.startsWith("http://") ||
+      currentScene.asset.url.startsWith("https://"))
+      ? currentScene.asset.url
+      : null;
+
+  const effectiveImageSrc = currentSceneImageSrc || fallbackImageSrc;
+  const effectiveOverlayTitle = currentScene ? currentScene.overlayTitle : true;
+  const effectiveOverlaySubtitles = currentScene
+    ? currentScene.overlaySubtitles
+    : subtitleEnabled;
+  const effectiveOverlayAvatar = currentScene
+    ? currentScene.overlayAvatar
+    : showAvatarGlobal;
+
+  const sceneImageStyle = currentSceneData
+    ? getSceneImageStyle(
+        currentScene?.motionPreset,
+        currentSceneData.sceneFrame,
+        currentSceneData.sceneDurationInFrames
+      )
+    : { transform: "scale(1)" };
+
   return (
     <AbsoluteFill
       style={{
@@ -301,15 +427,16 @@ export const VideoComposition = ({
         fontFamily: "Arial, sans-serif",
       }}
     >
-      {imageSrc ? (
+      {effectiveImageSrc ? (
         <Img
-          src={imageSrc}
+          src={effectiveImageSrc}
           style={{
             position: "absolute",
             inset: 0,
             width: "100%",
             height: "100%",
             objectFit: "cover",
+            ...sceneImageStyle,
           }}
         />
       ) : (
@@ -329,53 +456,55 @@ export const VideoComposition = ({
       />
 
       {musicSrc ? <Audio src={musicSrc} volume={musicVolume} /> : null}
-      {showAvatar ? <AvatarWindow /> : null}
+      {effectiveOverlayAvatar ? <AvatarWindow /> : null}
 
-      <div
-        style={{
-          ...getTitlePositionStyle({
-            position: graphicTitlePosition,
-            subtitleEnabled,
-            subtitlePosition,
-            outputFormat,
-          }),
-          transform: `translateY(${(1 - titleEntrance) * 24}px)`,
-          opacity: titleEntrance,
-        }}
-      >
-        <div style={{ maxWidth: getTitleBoxWidth(outputFormat) }}>
-          <div
-            style={{
-              display: "inline-flex",
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.15)",
-              padding: "8px 12px",
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            título
-          </div>
+      {effectiveOverlayTitle ? (
+        <div
+          style={{
+            ...getTitlePositionStyle({
+              position: graphicTitlePosition,
+              subtitleEnabled: effectiveOverlaySubtitles,
+              subtitlePosition,
+              outputFormat,
+            }),
+            transform: `translateY(${(1 - titleEntrance) * 24}px)`,
+            opacity: titleEntrance,
+          }}
+        >
+          <div style={{ maxWidth: getTitleBoxWidth(outputFormat) }}>
+            <div
+              style={{
+                display: "inline-flex",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.15)",
+                padding: "8px 12px",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              título
+            </div>
 
-          <div
-            style={{
-              marginTop: 14,
-              fontWeight: 700,
-              fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
-              lineHeight:
-                outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
-              textShadow: "0 3px 18px rgba(0,0,0,0.35)",
-            }}
-          >
-            {title}
+            <div
+              style={{
+                marginTop: 14,
+                fontWeight: 700,
+                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
+                lineHeight:
+                  outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
+                textShadow: "0 3px 18px rgba(0,0,0,0.35)",
+              }}
+            >
+              {title}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
-      {subtitleEnabled && currentSubtitle ? (
+      {effectiveOverlaySubtitles && currentSubtitle ? (
         <div style={getSubtitlePositionStyle(subtitlePosition)}>
           <div
             style={{

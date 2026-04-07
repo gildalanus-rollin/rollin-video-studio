@@ -3,6 +3,25 @@ import fs from "fs/promises";
 import { bundle } from "@remotion/bundler";
 import { selectComposition, renderMedia } from "@remotion/renderer";
 
+type RenderScene = {
+  id: string;
+  sequenceOrder: number;
+  sceneType: string;
+  role: string;
+  motionPreset: string;
+  durationRatio: number;
+  overlayTitle: boolean;
+  overlaySubtitles: boolean;
+  overlayAvatar: boolean;
+  asset: {
+    id: string;
+    label: string;
+    originalFilename: string;
+    isPrimary: boolean;
+    url: string;
+  } | null;
+};
+
 type RenderVideoInput = {
   title?: string;
   script?: string;
@@ -18,6 +37,7 @@ type RenderVideoInput = {
   subtitlePosition?: string;
   subtitleSize?: string;
   outputFileName?: string;
+  visualSequence?: RenderScene[];
 };
 
 export async function renderVideo(input: RenderVideoInput) {
@@ -45,6 +65,7 @@ export async function renderVideo(input: RenderVideoInput) {
     subtitleEnabled: input.subtitleEnabled ?? true,
     subtitlePosition: input.subtitlePosition ?? "bottom-center",
     subtitleSize: input.subtitleSize ?? "md",
+    visualSequence: input.visualSequence ?? [],
   };
 
   const composition = await selectComposition({
