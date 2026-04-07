@@ -26,6 +26,44 @@ type ProjectAsset = {
   updated_at: string;
 };
 
+type VisualSequenceRow = {
+  id: string;
+  project_id: string;
+  asset_id: string | null;
+  sequence_order: number;
+  scene_type: string;
+  role: string;
+  motion_preset: string;
+  duration_ratio: number;
+  overlay_title: boolean;
+  overlay_subtitles: boolean;
+  overlay_avatar: boolean;
+  created_at: string;
+  updated_at?: string;
+  asset?: ProjectAsset | null;
+};
+
+function resolveAssetUrl(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  asset: Pick<ProjectAsset, "storage_bucket" | "storage_path" | "source_type" | "value"> | null
+) {
+  if (!asset) return "";
+
+  if (asset.storage_bucket && asset.storage_path) {
+    const { data } = supabase.storage
+      .from(asset.storage_bucket)
+      .getPublicUrl(asset.storage_path);
+
+    return data.publicUrl;
+  }
+
+  if (asset.source_type === "url" && asset.value) {
+    return asset.value;
+  }
+
+  return asset.value || "";
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -36,6 +74,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = getSupabaseAdmin();
+    const warnings: string[] = [];
 
     const { data, error } = await supabase
       .from("projects")
@@ -49,39 +88,100 @@ export async function POST(req: Request) {
 
     const parsed = parseProjectNotes(data.notes);
 
-    const { data: assetRows, error: assetsError } = await supabase
-      .from("project_assets")
-      .select("*")
-      .eq("project_id", projectId)
-      .eq("asset_type", "image")
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-
-    if (assetsError) {
-      return NextResponse.json({ error: assetsError.message }, { status: 500 });
-    }
-
-    const assets = (assetRows ?? []) as ProjectAsset[];
-
-    const selectedAsset =
-      assets.find((asset) => asset.is_primary) ??
-      assets[0] ??
-      null;
-
     let resolvedImage = parsed.selectedImage || "";
 
-    if (selectedAsset) {
-      if (selectedAsset.storage_bucket && selectedAsset.storage_path) {
-        const { data: publicUrlData } = supabase.storage
-          .from(selectedAsset.storage_bucket)
-          .getPublicUrl(selectedAsset.storage_path);
+    try {
+      const { data: assetRows, error: assetsError } = await supabase
+        .from("project_assets")
+        .select("*")
+        .eq("project_id", projectId)
+        .eq("asset_type", "image")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
 
-        resolvedImage = publicUrlData.publicUrl;
-      } else if (selectedAsset.source_type === "url" && selectedAsset.value) {
-        resolvedImage = selectedAsset.value;
-      } else if (selectedAsset.value) {
-        resolvedImage = selectedAsset.value;
+      if (assetsError) {
+        warnings.push(`No se pudo leer project_assets: ${assetsError.message}`);
+      } else {
+        const assets = (assetRows ?? []) as ProjectAsset[];
+
+        const selectedAsset =
+          assets.find((asset) => asset.is_primary) ??
+          assets[0] ??
+          null;
+
+        if (selectedAsset) {
+          resolvedImage = resolveAssetUrl(supabase, selectedAsset);
+        }
       }
+    } catch (error) {
+      warnings.push(
+        error instanceof Error
+          ? `Fallo al resolver image principal: ${error.message}`
+          : "Fallo al resolver image principal"
+      );
+    }
+
+    let visualSequence: Array<{
+      id: string;
+      sequenceOrder: number;
+      sceneType: string;
+      role: string;
+      motionPreset: string;
+      durationRatio: number;
+      overlayTitle: boolean;
+      overlaySubtitles: boolean;
+      overlayAvatar: boolean;
+      asset: {
+        id: string;
+        label: string;
+        originalFilename: string;
+        isPrimary: boolean;
+        url: string;
+      } | null;
+    }> = [];
+
+    try {
+      const { data: visualSequenceRows, error: sequenceError } = await supabase
+        .from("project_visual_sequence")
+        .select(`
+          *,
+          asset:project_assets (*)
+        `)
+        .eq("project_id", projectId)
+        .order("sequence_order", { ascending: true });
+
+      if (sequenceError) {
+        warnings.push(
+          `No se pudo leer project_visual_sequence: ${sequenceError.message}`
+        );
+      } else {
+        visualSequence = ((visualSequenceRows ?? []) as VisualSequenceRow[]).map((row) => ({
+          id: row.id,
+          sequenceOrder: row.sequence_order,
+          sceneType: row.scene_type,
+          role: row.role,
+          motionPreset: row.motion_preset,
+          durationRatio: row.duration_ratio,
+          overlayTitle: row.overlay_title,
+          overlaySubtitles: row.overlay_subtitles,
+          overlayAvatar: row.overlay_avatar,
+          asset: row.asset
+            ? {
+                id: row.asset.id,
+                label: row.asset.label || "",
+                originalFilename: row.asset.original_filename || "",
+                isPrimary: row.asset.is_primary,
+                url: resolveAssetUrl(supabase, row.asset),
+              }
+            : null,
+        }));
+      }
+    } catch (error) {
+      warnings.push(
+        error instanceof Error
+          ? `Fallo al resolver visualSequence: ${error.message}`
+          : "Fallo al resolver visualSequence"
+      );
     }
 
     const exportData = {
@@ -95,6 +195,8 @@ export async function POST(req: Request) {
       image: resolvedImage,
       video: parsed.selectedVideo,
       music: parsed.selectedMusic,
+      visualSequence,
+      warnings,
       createdAt: new Date().toISOString(),
     };
 
