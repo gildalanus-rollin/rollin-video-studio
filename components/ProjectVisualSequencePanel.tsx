@@ -21,6 +21,9 @@ type SequenceRow = {
   } | null;
 };
 
+const ROLE_OPTIONS = ["cover", "support", "closing"] as const;
+const MOTION_OPTIONS = ["static", "pan", "zoom-in", "zoom-out"] as const;
+
 export default function ProjectVisualSequencePanel({
   projectId,
 }: {
@@ -29,6 +32,8 @@ export default function ProjectVisualSequencePanel({
   const [rows, setRows] = useState<SequenceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [movingId, setMovingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function loadSequence() {
@@ -94,6 +99,82 @@ export default function ProjectVisualSequencePanel({
     }
   }
 
+  async function patchRow(
+    sequenceId: string,
+    patch: Partial<
+      Pick<
+        SequenceRow,
+        | "role"
+        | "motion_preset"
+        | "overlay_title"
+        | "overlay_subtitles"
+        | "overlay_avatar"
+      >
+    >
+  ) {
+    try {
+      setUpdatingId(sequenceId);
+      setError("");
+
+      const response = await fetch(
+        `/api/projects/${projectId}/visual-sequence/${sequenceId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(patch),
+        }
+      );
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json?.error || "No se pudo actualizar la escena");
+      }
+
+      await loadSequence();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al actualizar la escena"
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function moveRow(sequenceId: string, direction: "up" | "down") {
+    try {
+      setMovingId(sequenceId);
+      setError("");
+
+      const response = await fetch(
+        `/api/projects/${projectId}/visual-sequence/${sequenceId}/move`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ direction }),
+        }
+      );
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json?.error || "No se pudo mover la escena");
+      }
+
+      await loadSequence();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al mover la escena"
+      );
+    } finally {
+      setMovingId(null);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -133,81 +214,166 @@ export default function ProjectVisualSequencePanel({
         </p>
       ) : (
         <div className="mt-4 space-y-3">
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              className="rounded-2xl border border-slate-200 bg-white p-3"
-            >
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-                <div className="w-full max-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                  {row.resolved_url ? (
-                    <img
-                      src={row.resolved_url}
-                      alt={
-                        row.asset?.original_filename ||
-                        row.asset?.label ||
-                        "frame de secuencia"
-                      }
-                      className="aspect-video w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-video items-center justify-center text-sm text-slate-400">
-                      sin preview
-                    </div>
-                  )}
-                </div>
+          {rows.map((row, index) => {
+            const isFirst = index === 0;
+            const isLast = index === rows.length - 1;
+            const isUpdating = updatingId === row.id;
+            const isMoving = movingId === row.id;
+            const isBusy = isUpdating || isMoving;
 
-                <div className="min-w-0 flex-1 space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                      orden {row.sequence_order}
-                    </span>
-
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                      {row.scene_type}
-                    </span>
-
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                      {row.role}
-                    </span>
-
-                    {row.asset?.is_primary ? (
-                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
-                        asset principal
-                      </span>
-                    ) : null}
+            return (
+              <div
+                key={row.id}
+                className="rounded-2xl border border-slate-200 bg-white p-3"
+              >
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+                  <div className="w-full max-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                    {row.resolved_url ? (
+                      <img
+                        src={row.resolved_url}
+                        alt={
+                          row.asset?.original_filename ||
+                          row.asset?.label ||
+                          "frame de secuencia"
+                        }
+                        className="aspect-video w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-video items-center justify-center text-sm text-slate-400">
+                        sin preview
+                      </div>
+                    )}
                   </div>
 
-                  <p className="truncate text-sm font-medium text-slate-900">
-                    {row.asset?.original_filename || row.asset?.label || "asset"}
-                  </p>
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                        orden {row.sequence_order}
+                      </span>
 
-                  <div className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-3">
-                    <div>
-                      <span className="font-medium text-slate-900">motion:</span>{" "}
-                      {row.motion_preset}
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                        {row.scene_type}
+                      </span>
+
+                      {row.asset?.is_primary ? (
+                        <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                          asset principal
+                        </span>
+                      ) : null}
                     </div>
-                    <div>
-                      <span className="font-medium text-slate-900">duración:</span>{" "}
-                      {row.duration_ratio}
+
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      {row.asset?.original_filename || row.asset?.label || "asset"}
+                    </p>
+
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      <label className="space-y-1 text-sm">
+                        <span className="block text-slate-600">role</span>
+                        <select
+                          value={row.role}
+                          disabled={isBusy}
+                          onChange={(event) =>
+                            void patchRow(row.id, { role: event.target.value })
+                          }
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                        >
+                          {ROLE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="space-y-1 text-sm">
+                        <span className="block text-slate-600">motion</span>
+                        <select
+                          value={row.motion_preset}
+                          disabled={isBusy}
+                          onChange={(event) =>
+                            void patchRow(row.id, {
+                              motion_preset: event.target.value,
+                            })
+                          }
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                        >
+                          {MOTION_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <div className="grid gap-2 sm:grid-cols-3 md:col-span-2 xl:col-span-1">
+                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={row.overlay_title}
+                            disabled={isBusy}
+                            onChange={(event) =>
+                              void patchRow(row.id, {
+                                overlay_title: event.target.checked,
+                              })
+                            }
+                          />
+                          title
+                        </label>
+
+                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={row.overlay_subtitles}
+                            disabled={isBusy}
+                            onChange={(event) =>
+                              void patchRow(row.id, {
+                                overlay_subtitles: event.target.checked,
+                              })
+                            }
+                          />
+                          subtitles
+                        </label>
+
+                        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={row.overlay_avatar}
+                            disabled={isBusy}
+                            onChange={(event) =>
+                              void patchRow(row.id, {
+                                overlay_avatar: event.target.checked,
+                              })
+                            }
+                          />
+                          avatar
+                        </label>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-medium text-slate-900">title:</span>{" "}
-                      {row.overlay_title ? "on" : "off"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-slate-900">subtitles:</span>{" "}
-                      {row.overlay_subtitles ? "on" : "off"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-slate-900">avatar:</span>{" "}
-                      {row.overlay_avatar ? "on" : "off"}
+
+                    <div className="grid grid-cols-2 gap-2 sm:max-w-[260px]">
+                      <button
+                        type="button"
+                        onClick={() => void moveRow(row.id, "up")}
+                        disabled={isFirst || isBusy}
+                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isMoving ? "moviendo..." : "subir"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void moveRow(row.id, "down")}
+                        disabled={isLast || isBusy}
+                        className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isMoving ? "moviendo..." : "bajar"}
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
