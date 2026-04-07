@@ -1,56 +1,81 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import fs from "fs";
-import path from "path";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-export async function POST(req: Request) {
+export const runtime = "nodejs";
+
+function sanitizeFilename(filename: string) {
+  return filename
+    .normalize("NFKD")
+    .replace(/[^\w.\-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+}
+
+export async function POST(request: Request) {
   try {
-    const { filePath, fileName } = await req.json();
+    const supabase = getSupabaseAdmin();
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const formData = await request.formData();
+    const file = formData.get("file");
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
-        { error: "Faltan variables de entorno de Supabase." },
+        { error: "Falta el archivo de video" },
+        { status: 400 }
+      );
+    }
+
+    if (!file.type || !file.type.startsWith("video/")) {
+      return NextResponse.json(
+        { error: "Solo se permiten archivos de video" },
+        { status: 400 }
+      );
+    }
+
+    const folderRaw = formData.get("folder");
+    const folder =
+      typeof folderRaw === "string" && folderRaw.trim()
+        ? folderRaw.trim().replace(/^\/+|\/+$/g, "")
+        : "projects/uploads";
+
+    const safeName = sanitizeFilename(file.name || "video.mp4");
+    const fileId = randomUUID();
+    const storagePath = `${folder}/${fileId}-${safeName}`;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { error: uploadError } = await supabase.storage
+      .from("videos")
+      .upload(storagePath, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return NextResponse.json(
+        { error: uploadError.message },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-    const absolutePath = path.join(process.cwd(), filePath);
-
-    if (!fs.existsSync(absolutePath)) {
-      return NextResponse.json(
-        { error: "El archivo no existe en el servidor." },
-        { status: 404 }
-      );
-    }
-
-    const fileBuffer = fs.readFileSync(absolutePath);
-
-    const { error } = await supabase.storage
+    const { data: publicUrlData } = supabase.storage
       .from("videos")
-      .upload(fileName, fileBuffer, {
-        contentType: "video/mp4",
-        upsert: true,
-      });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const { data } = supabase.storage
-      .from("videos")
-      .getPublicUrl(fileName);
+      .getPublicUrl(storagePath);
 
     return NextResponse.json({
-      url: data.publicUrl,
+      ok: true,
+      path: storagePath,
+      url: publicUrlData.publicUrl,
     });
-  } catch (err) {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Error subiendo el video" },
+      {
+        error:
+          error instanceof Error ? error.message : "Error subiendo el video",
+      },
       { status: 500 }
     );
   }
