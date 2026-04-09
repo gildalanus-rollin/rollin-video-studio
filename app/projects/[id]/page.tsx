@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import ProjectTitleEditor from "@/components/ProjectTitleEditor";
 import ProjectSummaryEditor from "@/components/ProjectSummaryEditor";
 import ProjectEditorialPanel from "@/components/ProjectEditorialPanel";
@@ -80,6 +81,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     );
   }
 
+  const supabaseAdmin = getSupabaseAdmin();
+
   const parsedNotes = parseProjectNotes(project.notes);
   const secondarySources = parsedNotes.secondarySources;
   const summary = parsedNotes.summary;
@@ -114,7 +117,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const effectiveSubtitleSize =
     project.subtitle_size ?? "md";
 
-  const { data: assetRows } = await supabase
+  const { data: assetRows } = await supabaseAdmin
     .from("project_assets")
     .select("storage_bucket, storage_path, source_type, value, is_primary")
     .eq("project_id", id)
