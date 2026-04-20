@@ -5,6 +5,7 @@ import RemoveSecondarySourceButton from "@/components/RemoveSecondarySourceButto
 import ProjectAssetsPanel from "@/components/ProjectAssetsPanel";
 import ProjectVisualSequencePanel from "@/components/ProjectVisualSequencePanel";
 import ProjectLegacyMediaPanel from "@/components/ProjectLegacyMediaPanel";
+import ClearMusicButton from "@/components/ClearMusicButton";
 
 type Props = {
   projectId: string;
@@ -129,6 +130,8 @@ export default function ProjectMaterialPanel({
             >
               {selectedMusic ? "reemplazar música" : "seleccionar música"}
             </Link>
+
+            {selectedMusic ? <ClearMusicButton projectId={projectId} /> : null}
           </div>
         </div>
 

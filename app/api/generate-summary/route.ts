@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+type SourceMaterial = {
+  url: string;
+  status: number;
+  title: string;
+  description: string;
+  articleText: string;
+};
+
 function stripHtml(html: string) {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -73,7 +81,6 @@ function extractJsonLdArticleBody(html: string) {
 
     try {
       const parsed = JSON.parse(jsonMatch[1]);
-
       const candidates = Array.isArray(parsed) ? parsed : [parsed];
 
       for (const item of candidates) {
@@ -91,35 +98,106 @@ function extractJsonLdArticleBody(html: string) {
 
 function extractReadableText(html: string) {
   const articleBody = extractJsonLdArticleBody(html);
-  if (articleBody) {
-    return articleBody.slice(0, 12000);
-  }
+  if (articleBody) return articleBody.slice(0, 12000);
 
   const articleMatch = html.match(/<article[\s\S]*?<\/article>/i);
-  if (articleMatch?.[0]) {
-    return stripHtml(articleMatch[0]).slice(0, 12000);
-  }
+  if (articleMatch?.[0]) return stripHtml(articleMatch[0]).slice(0, 12000);
 
   const mainMatch = html.match(/<main[\s\S]*?<\/main>/i);
-  if (mainMatch?.[0]) {
-    return stripHtml(mainMatch[0]).slice(0, 12000);
-  }
+  if (mainMatch?.[0]) return stripHtml(mainMatch[0]).slice(0, 12000);
 
   const bodyMatch = html.match(/<body[\s\S]*?<\/body>/i);
-  if (bodyMatch?.[0]) {
-    return stripHtml(bodyMatch[0]).slice(0, 12000);
-  }
+  if (bodyMatch?.[0]) return stripHtml(bodyMatch[0]).slice(0, 12000);
 
   return stripHtml(html).slice(0, 12000);
 }
 
+function normalizeLength(value: unknown) {
+  if (value === "short" || value === "medium" || value === "long") {
+    return value;
+  }
+  return "medium";
+}
+
+function getLengthInstruction(length: "short" | "medium" | "long") {
+  switch (length) {
+    case "short":
+      return "Entregá 2 líneas breves y muy directas, pensadas para un video corto de 10 a 15 segundos.";
+    case "long":
+      return "Entregá 5 o 6 líneas breves, claras y concretas, pensadas para un video de 30 a 45 segundos.";
+    case "medium":
+    default:
+      return "Entregá 4 líneas breves, claras y concretas, pensadas para un video de 15 a 30 segundos.";
+  }
+}
+
+async function fetchSourceMaterial(url: string): Promise<SourceMaterial | null> {
+  let html = "";
+  let status = 200;
+
+  try {
+    const articleResponse = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
+        "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+      },
+      cache: "no-store",
+      redirect: "follow",
+    });
+
+    status = articleResponse.status;
+
+    if (!articleResponse.ok) {
+      return {
+        url,
+        status,
+        title: "",
+        description: "",
+        articleText: "",
+      };
+    }
+
+    html = await articleResponse.text();
+
+    return {
+      url,
+      status,
+      title: extractTitle(html),
+      description: extractDescription(html),
+      articleText: extractReadableText(html),
+    };
+  } catch {
+    return {
+      url,
+      status: 0,
+      title: "",
+      description: "",
+      articleText: "",
+    };
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { url } = await req.json();
+    const body = await req.json();
+    const { url, urls, length } = body;
 
-    if (!url || typeof url !== "string") {
+    const requestedUrls = [
+      ...(Array.isArray(urls) ? urls : []),
+      ...(typeof url === "string" ? [url] : []),
+    ]
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean);
+
+    const uniqueUrls = [...new Set(requestedUrls)];
+    const normalizedLength = normalizeLength(length);
+
+    if (!uniqueUrls.length) {
       return NextResponse.json(
-        { error: "Falta la URL principal." },
+        { error: "Falta al menos una URL fuente." },
         { status: 400 }
       );
     }
@@ -131,58 +209,56 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let html = "";
-    let title = "";
-    let description = "";
-    let articleText = "";
-    let fetchStatus = 200;
+    const materials = await Promise.all(uniqueUrls.map(fetchSourceMaterial));
 
-    try {
-      const articleResponse = await fetch(url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
-          "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        },
-        cache: "no-store",
-        redirect: "follow",
-      });
+    const usableSources = materials.filter((item): item is SourceMaterial => {
+      if (!item) return false;
+      const combined = [item.title, item.description, item.articleText]
+        .filter(Boolean)
+        .join("\n\n")
+        .trim();
+      return combined.length >= 80;
+    });
 
-      fetchStatus = articleResponse.status;
-
-      if (articleResponse.ok) {
-        html = await articleResponse.text();
-        title = extractTitle(html);
-        description = extractDescription(html);
-        articleText = extractReadableText(html);
-      }
-    } catch {
-      // seguir con fallback
-    }
-
-    const combinedSource = [title, description, articleText]
-      .filter(Boolean)
-      .join("\n\n")
-      .trim();
-
-    if (!combinedSource || combinedSource.length < 80) {
+    if (!usableSources.length) {
       return NextResponse.json(
         {
           error:
-            fetchStatus === 403 || fetchStatus === 429
-              ? "La nota restringe el acceso automático. Probá con otra fuente o pegá un resumen manual."
-              : "No se pudo extraer suficiente contenido del enlace.",
+            "No se pudo extraer suficiente contenido de las fuentes provistas.",
         },
         { status: 400 }
       );
     }
 
-    const systemPrompt =
-      fetchStatus === 403 || fetchStatus === 429
-        ? "Sos un redactor periodístico audiovisual. Debes resumir una noticia en español para un video corto. A veces solo tendrás título, descripción y fragmentos parciales porque el sitio limita el acceso. Entrega 4 líneas breves, claras y concretas, una debajo de la otra. No inventes datos que no estén en el material provisto."
-        : "Sos un redactor periodístico audiovisual. Debes resumir una noticia en español para un video informativo corto. Entrega 4 líneas breves, claras y concretas, sin viñetas, una debajo de la otra. No inventes nada que no esté en el contenido provisto. Priorizá hechos, protagonistas y contexto útil para un video de hasta 2 minutos.";
+    const systemPrompt = [
+      "Sos un redactor periodístico audiovisual.",
+      "Debes resumir una noticia en español para un video informativo corto.",
+      getLengthInstruction(normalizedLength),
+      "Podés recibir varias fuentes sobre el mismo tema.",
+      "Integrá la información coincidente y priorizá hechos, protagonistas y contexto útil.",
+      "No inventes nada que no esté en el material provisto.",
+      "No uses viñetas.",
+      "Entregá una línea debajo de la otra.",
+    ].join(" ");
+
+    const sourceBlocks = usableSources
+      .map(
+        (source, index) => `FUENTE ${index + 1}
+URL: ${source.url}
+
+Título:
+${source.title || "Sin título detectado"}
+
+Descripción:
+${source.description || "Sin descripción detectada"}
+
+Contenido extraído:
+${source.articleText || "Sin contenido amplio extraído"}
+
+Estado de acceso:
+${source.status}`
+      )
+      .join("\n\n--------------------\n\n");
 
     const openaiResponse = await fetch(
       "https://api.openai.com/v1/chat/completions",
@@ -201,19 +277,7 @@ export async function POST(req: NextRequest) {
             },
             {
               role: "user",
-              content: `URL: ${url}
-
-Título detectado:
-${title || "Sin título detectado"}
-
-Descripción detectada:
-${description || "Sin descripción detectada"}
-
-Contenido extraído:
-${articleText || "Sin contenido amplio extraído"}
-
-Estado de acceso:
-${fetchStatus}`,
+              content: sourceBlocks,
             },
           ],
           temperature: 0.2,
@@ -243,7 +307,13 @@ ${fetchStatus}`,
       );
     }
 
-    return NextResponse.json({ summary });
+    return NextResponse.json({
+      summary,
+      meta: {
+        length: normalizedLength,
+        sourcesUsed: usableSources.length,
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {

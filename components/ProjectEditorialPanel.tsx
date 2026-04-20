@@ -5,6 +5,7 @@ import RenderScriptEditor from "@/components/RenderScriptEditor";
 
 type Props = {
   projectId: string;
+  title: string;
   mainSourceUrl: string;
   effectiveEditorialProfile: string;
   durationLimitSeconds: number;
@@ -18,10 +19,14 @@ type Props = {
   externalVideoUrl: string;
   narrationMode: string;
   renderScript: string;
+  initialStatus?: string | null;
+  initialVoiceOption?: string | null;
+  initialAvatarOption?: string | null;
 };
 
 export default function ProjectEditorialPanel({
   projectId,
+  title,
   mainSourceUrl,
   effectiveEditorialProfile,
   durationLimitSeconds,
@@ -35,6 +40,9 @@ export default function ProjectEditorialPanel({
   externalVideoUrl,
   narrationMode,
   renderScript,
+  initialStatus,
+  initialVoiceOption,
+  initialAvatarOption,
 }: Props) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -51,18 +59,14 @@ export default function ProjectEditorialPanel({
           initialCategory={effectiveEditorialProfile}
           initialDurationLimitSeconds={durationLimitSeconds}
           initialOutputFormat={outputFormat}
+          initialStatus={initialStatus}
         />
 
         <NarrationModeEditor
           projectId={projectId}
-          initialSecondarySources={secondarySources}
-          initialSummary={summary}
-          initialSelectedImage={selectedImage}
-          initialSelectedVideo={selectedVideo}
-          initialSelectedMusic={selectedMusic}
-          initialExternalImageUrl={externalImageUrl}
-          initialExternalVideoUrl={externalVideoUrl}
           initialNarrationMode={narrationMode}
+          initialVoiceOption={initialVoiceOption ?? undefined}
+          initialAvatarOption={initialAvatarOption ?? undefined}
         />
 
         <ProjectSummaryEditor
@@ -75,11 +79,15 @@ export default function ProjectEditorialPanel({
           initialSelectedMusic={selectedMusic}
           initialExternalImageUrl={externalImageUrl}
           initialExternalVideoUrl={externalVideoUrl}
+          durationLimitSeconds={durationLimitSeconds}
         />
 
         <RenderScriptEditor
           projectId={projectId}
           initialRenderScript={renderScript}
+          title={title}
+          summary={summary}
+          durationLimitSeconds={durationLimitSeconds}
         />
       </div>
     </section>

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
 
 type Project = {
   id: string;
@@ -43,10 +44,10 @@ export default async function ProjectsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
             proyectos
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="mt-2 text-5xl font-semibold tracking-tight text-slate-900">
             panel de proyectos
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-600">
             Acá ves todos los proyectos guardados en la base, con acceso rápido al
             detalle y a la fuente principal.
           </p>
@@ -54,7 +55,7 @@ export default async function ProjectsPage() {
 
         <Link
           href="/projects/new"
-          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-lg font-medium text-white transition hover:bg-slate-800"
         >
           nuevo proyecto
         </Link>
@@ -77,20 +78,20 @@ export default async function ProjectsPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">
+                  <h2 className="text-3xl font-semibold text-slate-900">
                     {project.title}
                   </h2>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-lg text-slate-500">
                     {project.category ?? "explicativo"}
                   </p>
                 </div>
 
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                  {project.status}
+                <span className="inline-flex cursor-default select-none items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-base font-medium text-slate-500">
+                  estado: {project.status}
                 </span>
               </div>
 
-              <div className="mt-5 grid grid-cols-1 gap-3 text-sm text-slate-600 sm:grid-cols-2">
+              <div className="mt-5 grid grid-cols-1 gap-3 text-lg text-slate-600 sm:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs uppercase tracking-wide text-slate-400">
                     duración
@@ -110,7 +111,7 @@ export default async function ProjectsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 text-sm text-slate-500">
+              <div className="mt-4 text-lg text-slate-500">
                 Creado: {new Date(project.created_at).toLocaleString("es-AR")}
               </div>
 
@@ -120,7 +121,7 @@ export default async function ProjectsPage() {
                     href={project.main_source_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-lg font-medium text-slate-700 transition hover:bg-slate-50"
                   >
                     ver fuente principal
                   </a>
@@ -132,10 +133,15 @@ export default async function ProjectsPage() {
 
                 <Link
                   href={`/projects/${project.id}`}
-                  className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2.5 text-lg font-medium text-white transition hover:bg-slate-800"
                 >
                   ver detalle
                 </Link>
+
+                <DeleteProjectButton
+                  projectId={project.id}
+                  projectTitle={project.title}
+                />
               </div>
             </div>
           ))}

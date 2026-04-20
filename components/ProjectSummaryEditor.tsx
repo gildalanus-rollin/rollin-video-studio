@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Props = {
   projectId: string;
@@ -12,17 +12,46 @@ type Props = {
   initialSelectedMusic: string;
   initialExternalImageUrl: string;
   initialExternalVideoUrl: string;
+  durationLimitSeconds?: number;
 };
+
+function getSummaryLength(durationLimitSeconds?: number) {
+  const seconds = Number(durationLimitSeconds) || 15;
+
+  if (seconds <= 15) return "short";
+  if (seconds <= 30) return "medium";
+  return "long";
+}
+
+function getSummaryLengthLabel(length: "short" | "medium" | "long") {
+  switch (length) {
+    case "short":
+      return "corto";
+    case "long":
+      return "largo";
+    case "medium":
+    default:
+      return "medio";
+  }
+}
 
 export default function ProjectSummaryEditor({
   projectId,
   mainSourceUrl,
+  initialSecondarySources,
   initialSummary,
+  durationLimitSeconds,
 }: Props) {
   const [summary, setSummary] = useState(initialSummary);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
+
+  const sourceUrls = useMemo(() => {
+    return [...new Set([mainSourceUrl, ...initialSecondarySources].map((item) => item.trim()).filter(Boolean))];
+  }, [mainSourceUrl, initialSecondarySources]);
+
+  const summaryLength = getSummaryLength(durationLimitSeconds);
 
   const saveSummaryValue = async (nextSummary: string) => {
     const response = await fetch("/api/save-summary", {
@@ -62,8 +91,8 @@ export default function ProjectSummaryEditor({
   };
 
   const handleGenerate = async () => {
-    if (!mainSourceUrl) {
-      setMessage("Este proyecto no tiene fuente principal.");
+    if (!sourceUrls.length) {
+      setMessage("Este proyecto no tiene fuentes cargadas.");
       return;
     }
 
@@ -76,7 +105,10 @@ export default function ProjectSummaryEditor({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url: mainSourceUrl }),
+        body: JSON.stringify({
+          urls: sourceUrls,
+          length: summaryLength,
+        }),
       });
 
       const result = await response.json();
@@ -108,6 +140,15 @@ export default function ProjectSummaryEditor({
         resumen base / texto animado
       </p>
 
+      <div className="mt-2 flex flex-wrap gap-2 text-sm text-slate-600">
+        <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
+          fuentes: <span className="font-medium text-slate-900">{sourceUrls.length}</span>
+        </span>
+        <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
+          resumen: <span className="font-medium text-slate-900">{getSummaryLengthLabel(summaryLength)}</span>
+        </span>
+      </div>
+
       <textarea
         rows={10}
         value={summary}
@@ -127,7 +168,7 @@ export default function ProjectSummaryEditor({
               : "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
           }
         >
-          {generating ? "generando..." : "generar desde fuente principal"}
+          {generating ? "generando..." : "generar resumen"}
         </button>
 
         <button

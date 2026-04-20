@@ -27,11 +27,9 @@ function getAspectClass(outputFormat: string) {
 }
 
 function getEffectiveTitleSize(
-  outputFormat: string,
+  _outputFormat: string,
   requestedSize?: string | null
 ) {
-  if (outputFormat === "1:1" && requestedSize === "lg") return "md";
-  if (outputFormat === "9:16" && requestedSize === "lg") return "md";
   return requestedSize || "md";
 }
 
@@ -44,24 +42,24 @@ function getTitleSizeClass(
   if (outputFormat === "9:16") {
     switch (size) {
       case "sm":
-        return "text-sm leading-tight";
+        return "text-base leading-tight";
       case "lg":
-        return "text-2xl leading-[1.05]";
+        return "text-3xl leading-[1.03]";
       case "md":
       default:
-        return "text-xl leading-[1.08]";
+        return "text-3xl leading-[1.04]";
     }
   }
 
   if (outputFormat === "1:1") {
     switch (size) {
       case "sm":
-        return "text-lg leading-tight";
+        return "text-xl leading-tight";
       case "lg":
-        return "text-3xl leading-[1.04]";
+        return "text-4xl leading-[1.02]";
       case "md":
       default:
-        return "text-2xl leading-[1.06]";
+        return "text-3xl leading-[1.04]";
     }
   }
 

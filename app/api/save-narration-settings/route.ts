@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { projectId, summary } = body;
+    const { projectId, narrationMode, voiceOption, avatarOption } = body;
 
     if (!projectId) {
       return NextResponse.json(
@@ -34,7 +34,9 @@ export async function POST(req: Request) {
 
     const notes = buildProjectNotes({
       ...parsed,
-      summary: summary || "",
+      narrationMode: (narrationMode || "").trim(),
+      voiceOption: (voiceOption || "").trim(),
+      avatarOption: (avatarOption || "").trim(),
     });
 
     const { error: updateError } = await supabase
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Error guardando resumen",
+            : "Error guardando narración",
       },
       { status: 500 }
     );

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
+import { createClient } from "@/lib/supabase-server";
+import LogoutButton from "@/components/LogoutButton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,11 +21,16 @@ export const metadata: Metadata = {
   description: "Estudio editorial de producción",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html
       lang="es"
@@ -40,9 +47,11 @@ export default function RootLayout({
                 <h1 className="mt-2 text-xl font-semibold text-slate-900">
                   video workflow
                 </h1>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Plataforma clara, ordenada y pensada para producción.
-                </p>
+                {user && (
+                  <p className="mt-1 truncate text-xs text-slate-400">
+                    {user.email}
+                  </p>
+                )}
               </div>
 
               <nav className="space-y-2">
@@ -52,21 +61,18 @@ export default function RootLayout({
                 >
                   Inicio
                 </Link>
-
                 <Link
                   href="/projects"
                   className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
                   Proyectos
                 </Link>
-
                 <Link
                   href="/projects/new"
                   className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
                   Nuevo proyecto
                 </Link>
-
                 <Link
                   href="/modules"
                   className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
@@ -75,6 +81,11 @@ export default function RootLayout({
                 </Link>
               </nav>
 
+              {user && (
+                <div className="mt-8">
+                  <LogoutButton />
+                </div>
+              )}
             </aside>
 
             <main className="flex-1">
@@ -89,9 +100,11 @@ export default function RootLayout({
                         estudio de producción editorial
                       </h2>
                     </div>
-
-                    <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
-                      online
+                    <div className="flex items-center gap-3">
+                      {user && <LogoutButton />}
+                      <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
+                        online
+                      </div>
                     </div>
                   </div>
                 </div>

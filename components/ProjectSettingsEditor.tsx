@@ -10,6 +10,7 @@ type Props = {
   initialOutputFormat: string;
   initialNarrativePreset?: string;
   initialSubtitleEnabled?: boolean | null;
+  initialStatus?: string | null;
 };
 
 const editorialProfiles = [
@@ -33,6 +34,12 @@ const narrativePresets = [
   },
 ];
 
+const statusOptions = [
+  { value: "draft", label: "draft" },
+  { value: "ready", label: "ready" },
+  { value: "archived", label: "archived" },
+];
+
 export default function ProjectSettingsEditor({
   projectId,
   initialCategory,
@@ -40,6 +47,7 @@ export default function ProjectSettingsEditor({
   initialOutputFormat,
   initialNarrativePreset,
   initialSubtitleEnabled,
+  initialStatus,
 }: Props) {
   const router = useRouter();
   const [editorialProfile, setEditorialProfile] = useState(
@@ -57,6 +65,7 @@ export default function ProjectSettingsEditor({
   const [subtitleEnabled, setSubtitleEnabled] = useState(
     initialSubtitleEnabled ?? true
   );
+  const [status, setStatus] = useState(initialStatus || "draft");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -77,6 +86,7 @@ export default function ProjectSettingsEditor({
           durationLimitSeconds,
           outputFormat,
           subtitleEnabled,
+          status,
         }),
       });
 
@@ -108,7 +118,24 @@ export default function ProjectSettingsEditor({
         enfoque y export
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-slate-400">
+            estado
+          </label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">
             perfil editorial

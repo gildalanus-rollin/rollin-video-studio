@@ -7,6 +7,8 @@ export type ProjectNotesData = {
   externalImageUrl: string;
   externalVideoUrl: string;
   narrationMode: string;
+  voiceOption?: string;
+  avatarOption?: string;
 };
 
 function extractSection(source: string, key: string) {
@@ -28,6 +30,8 @@ export function parseProjectNotes(notes: string | null): ProjectNotesData {
       externalImageUrl: "",
       externalVideoUrl: "",
       narrationMode: "",
+      voiceOption: "",
+      avatarOption: "",
     };
   }
 
@@ -42,6 +46,8 @@ export function parseProjectNotes(notes: string | null): ProjectNotesData {
     const externalImageUrl = extractSection(raw, "EXTERNAL_IMAGE_URL");
     const externalVideoUrl = extractSection(raw, "EXTERNAL_VIDEO_URL");
     const narrationMode = extractSection(raw, "NARRATION_MODE");
+    const voiceOption = extractSection(raw, "VOICE_OPTION");
+    const avatarOption = extractSection(raw, "AVATAR_OPTION");
 
     return {
       secondarySources: secondaryRaw
@@ -54,6 +60,8 @@ export function parseProjectNotes(notes: string | null): ProjectNotesData {
       externalImageUrl,
       externalVideoUrl,
       narrationMode,
+      voiceOption,
+      avatarOption,
     };
   }
 
@@ -71,6 +79,8 @@ export function parseProjectNotes(notes: string | null): ProjectNotesData {
       externalImageUrl: "",
       externalVideoUrl: "",
       narrationMode: "",
+      voiceOption: "",
+      avatarOption: "",
     };
   }
 
@@ -83,6 +93,8 @@ export function parseProjectNotes(notes: string | null): ProjectNotesData {
     externalImageUrl: "",
     externalVideoUrl: "",
     narrationMode: "",
+    voiceOption: "",
+    avatarOption: "",
   };
 }
 
@@ -121,6 +133,14 @@ export function buildProjectNotes(data: ProjectNotesData) {
 
   if (data.narrationMode.trim()) {
     sections.push(`###NARRATION_MODE###\n${data.narrationMode.trim()}`);
+  }
+
+  if (data.voiceOption?.trim()) {
+    sections.push(`###VOICE_OPTION###\n${data.voiceOption.trim()}`);
+  }
+
+  if (data.avatarOption?.trim()) {
+    sections.push(`###AVATAR_OPTION###\n${data.avatarOption.trim()}`);
   }
 
   return sections.join("\n\n") || null;

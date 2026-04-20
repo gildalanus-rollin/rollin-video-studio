@@ -1,28 +1,27 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { buildProjectNotes, parseProjectNotes } from "@/lib/projectNotes";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { projectId, mainSourceUrl, secondarySourceUrl, mode } = body;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!projectId) {
       return NextResponse.json(
-        { error: "Faltan variables de entorno de Supabase en el servidor." },
-        { status: 500 }
+        { error: "Falta projectId" },
+        { status: 400 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = getSupabaseAdmin();
 
     if (mode === "save-main") {
       const { error } = await supabase
         .from("projects")
-        .update({ main_source_url: mainSourceUrl || "" })
+        .update({ main_source_url: (mainSourceUrl || "").trim() })
         .eq("id", projectId);
 
       if (error) {
@@ -56,9 +55,11 @@ export async function POST(req: Request) {
         );
       }
 
+      const deduped = [...new Set([...parsed.secondarySources, nextSecondary])];
+
       const notes = buildProjectNotes({
         ...parsed,
-        secondarySources: [...parsed.secondarySources, nextSecondary],
+        secondarySources: deduped,
       });
 
       const { error: updateError } = await supabase
@@ -74,9 +75,12 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ error: "Modo inválido." }, { status: 400 });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Error guardando fuentes" },
+      {
+        error:
+          error instanceof Error ? error.message : "Error guardando fuentes",
+      },
       { status: 500 }
     );
   }
