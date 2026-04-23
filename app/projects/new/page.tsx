@@ -191,7 +191,7 @@ export default function NewProjectPage() {
             >
               {loading ? "creando..." : "Crear proyecto"}
             </button>
-            
+            <a
               href="/projects"
               className="text-sm text-slate-400 transition hover:text-slate-600"
             >
