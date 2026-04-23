@@ -15,6 +15,12 @@ type Project = {
   main_source_url: string | null;
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  draft: "bg-amber-50 text-amber-700 border-amber-200",
+  ready: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  archived: "bg-slate-100 text-slate-500 border-slate-200",
+};
+
 export default async function ProjectsPage() {
   let projects: Project[] = [];
   let errorMessage = "";
@@ -22,122 +28,93 @@ export default async function ProjectsPage() {
   try {
     const { data, error } = await supabase
       .from("projects")
-      .select(
-        "id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url"
-      )
+      .select("id, title, category, status, duration_limit_seconds, output_format, created_at, main_source_url")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      errorMessage = error.message;
-    }
-
+    if (error) errorMessage = error.message;
     projects = (data ?? []) as Project[];
   } catch (error) {
-    errorMessage =
-      error instanceof Error ? error.message : "Error al leer proyectos";
+    errorMessage = error instanceof Error ? error.message : "Error al leer proyectos";
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            proyectos
+            redaccion
           </p>
-          <h1 className="mt-2 text-5xl font-semibold tracking-tight text-slate-900">
-            panel de proyectos
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+            Proyectos
           </h1>
-          <p className="mt-3 max-w-3xl text-lg leading-8 text-slate-600">
-            Acá ves todos los proyectos guardados en la base, con acceso rápido al
-            detalle y a la fuente principal.
-          </p>
         </div>
-
         <Link
           href="/projects/new"
-          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-lg font-medium text-white transition hover:bg-slate-800"
+          className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
         >
-          nuevo proyecto
+          + Nuevo proyecto
         </Link>
       </div>
 
-      {errorMessage ? (
+      {errorMessage && (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Error al leer proyectos: {errorMessage}
+          {errorMessage}
         </div>
-      ) : projects.length === 0 ? (
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-          No hay proyectos cargados todavía.
+      )}
+
+      {!errorMessage && projects.length === 0 && (
+        <div className="rounded-[28px] border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
+          <p className="text-sm font-medium text-slate-700">No hay proyectos todavía</p>
+          <Link
+            href="/projects/new"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          >
+            + Nuevo proyecto
+          </Link>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          {projects.map((project) => (
+      )}
+
+      {projects.length > 0 && (
+        <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm">
+          {projects.map((project, index) => (
             <div
               key={project.id}
-              className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm"
+              className={"flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50" + (index !== 0 ? " border-t border-slate-100" : "")}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-3xl font-semibold text-slate-900">
-                    {project.title}
-                  </h2>
-                  <p className="mt-1 text-lg text-slate-500">
-                    {project.category ?? "explicativo"}
-                  </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={"inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium " + (STATUS_COLORS[project.status] ?? STATUS_COLORS.draft)}>
+                    {project.status}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {project.category ?? "general"}
+                  </span>
                 </div>
-
-                <span className="inline-flex cursor-default select-none items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-base font-medium text-slate-500">
-                  estado: {project.status}
-                </span>
+                <p className="mt-1 truncate text-sm font-semibold text-slate-900">
+                  {project.title}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  {project.output_format} · {project.duration_limit_seconds}s · {new Date(project.created_at).toLocaleDateString("es-AR")}
+                </p>
               </div>
 
-              <div className="mt-5 grid grid-cols-1 gap-3 text-lg text-slate-600 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">
-                    duración
-                  </p>
-                  <p className="mt-1 font-medium text-slate-900">
-                    {project.duration_limit_seconds}s
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">
-                    formato
-                  </p>
-                  <p className="mt-1 font-medium text-slate-900">
-                    {project.output_format}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 text-lg text-slate-500">
-                Creado: {new Date(project.created_at).toLocaleString("es-AR")}
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                {project.main_source_url ? (
+              <div className="flex shrink-0 items-center gap-2">
+                {project.main_source_url && (
                   <a
-                    href={project.main_source_url}
+                    href={String(project.main_source_url)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-lg font-medium text-slate-700 transition hover:bg-slate-50"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
                   >
-                    ver fuente principal
+                    fuente
                   </a>
-                ) : (
-                  <span className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
-                    sin fuente principal
-                  </span>
                 )}
-
                 <Link
-                  href={`/projects/${project.id}`}
-                  className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2.5 text-lg font-medium text-white transition hover:bg-slate-800"
+                  href={"/projects/" + project.id}
+                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
                 >
-                  ver detalle
+                  editar
                 </Link>
-
                 <DeleteProjectButton
                   projectId={project.id}
                   projectTitle={project.title}

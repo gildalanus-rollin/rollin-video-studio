@@ -2,6 +2,7 @@ import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
 import NarrationModeEditor from "@/components/NarrationModeEditor";
 import ProjectSummaryEditor from "@/components/ProjectSummaryEditor";
 import RenderScriptEditor from "@/components/RenderScriptEditor";
+import VoiceoverEditor from "@/components/VoiceoverEditor";
 
 type Props = {
   projectId: string;
@@ -22,6 +23,7 @@ type Props = {
   initialStatus?: string | null;
   initialVoiceOption?: string | null;
   initialAvatarOption?: string | null;
+  currentVoiceoverUrl?: string;
 };
 
 export default function ProjectEditorialPanel({
@@ -43,6 +45,7 @@ export default function ProjectEditorialPanel({
   initialStatus,
   initialVoiceOption,
   initialAvatarOption,
+  currentVoiceoverUrl,
 }: Props) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -88,6 +91,12 @@ export default function ProjectEditorialPanel({
           title={title}
           summary={summary}
           durationLimitSeconds={durationLimitSeconds}
+        />
+
+        <VoiceoverEditor
+          projectId={projectId}
+          renderScript={renderScript}
+          currentVoiceoverUrl={currentVoiceoverUrl}
         />
       </div>
     </section>
