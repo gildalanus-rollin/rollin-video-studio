@@ -9,7 +9,7 @@ type MusicFile = {
   url: string;
 };
 
-export default function MusicAssetsPage() {
+function MusicAssetsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const projectId = searchParams.get("projectId");
@@ -172,5 +172,15 @@ export default function MusicAssetsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+import { Suspense } from "react";
+
+export default function MusicAssetsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-slate-400">Cargando...</div>}>
+      <MusicAssetsContent />
+    </Suspense>
   );
 }
