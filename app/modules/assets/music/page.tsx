@@ -1,121 +1,175 @@
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import AssetSelectButton from "@/components/AssetSelectButton";
+"use client";
 
-type PageProps = {
-  searchParams: Promise<{
-    projectId?: string;
-  }>;
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+
+type MusicFile = {
+  name: string;
+  created_at: string | null;
+  url: string;
 };
 
-export default async function MusicAssetsPage({ searchParams }: PageProps) {
-  const { projectId } = await searchParams;
+export default function MusicAssetsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const projectId = searchParams.get("projectId");
 
-  const { data, error } = await supabase.storage
-    .from("music")
-    .list("", {
-      limit: 50,
-      sortBy: { column: "name", order: "asc" },
-    });
+  const [files, setFiles] = useState<MusicFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [selecting, setSelecting] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const files = data ?? [];
+  async function loadFiles() {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await fetch("/api/music/list");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Error al cargar música");
+      setFiles(json.files ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { void loadFiles(); }, []);
+
+  async function handleUpload(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    try {
+      setUploading(true);
+      setError("");
+      const formData = new FormData();
+      Array.from(fileList).forEach((f) => formData.append("files", f));
+      const res = await fetch("/api/music/upload", { method: "POST", body: formData });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Error al subir");
+      if (inputRef.current) inputRef.current.value = "";
+      await loadFiles();
+      setSuccess("Audio subido correctamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir audio");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSelect(fileName: string) {
+    if (!projectId) return;
+    try {
+      setSelecting(fileName);
+      setError("");
+      const res = await fetch(`/api/projects/${projectId}/select-music`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ musicPath: `music/${fileName}` }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Error al seleccionar");
+      router.push(`/projects/${projectId}`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al seleccionar música");
+    } finally {
+      setSelecting(null);
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-        <Link
-          href={projectId ? `/projects/${projectId}` : "/modules/assets"}
-          className="inline-flex items-center text-sm font-medium text-slate-500 transition hover:text-slate-900"
-        >
-          ← {projectId ? "volver al proyecto" : "volver a assets"}
-        </Link>
-
-        <div className="mt-5">
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            assets
+            biblioteca de música
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
-            music
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+            {projectId ? "Elegir música para el proyecto" : "Música"}
           </h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-            Esta sección intenta leer el bucket <strong>music</strong> de Supabase
-            y mostrar los archivos disponibles.
-          </p>
-
-          {projectId ? (
-            <div className="mt-4 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-              seleccionando una música para este proyecto
-            </div>
-          ) : null}
         </div>
-      </section>
+        <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+          {uploading ? "subiendo..." : "+ subir audio"}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="audio/mpeg,audio/mp3,audio/wav,audio/aiff,audio/x-aiff,audio/aif,.mp3,.wav,.aif,.aiff"
+            multiple
+            className="hidden"
+            onChange={(e) => void handleUpload(e.target.files)}
+          />
+        </label>
+      </div>
 
-      {error ? (
-        <section className="rounded-[28px] border border-red-200 bg-red-50 p-6 shadow-sm">
-          <p className="text-sm font-medium text-red-700">
-            Error al leer el bucket music: {error.message}
-          </p>
-          <p className="mt-2 text-sm text-red-600">
-            Esto no rompe la app. Solo indica que todavía falta permiso o acceso
-            correcto al bucket.
-          </p>
-        </section>
+      {projectId && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => router.push(`/projects/${projectId}`)}
+            className="text-sm text-slate-400 transition hover:text-slate-600"
+          >
+            ← volver al proyecto
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+          {success}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-slate-400">Cargando música...</p>
       ) : files.length === 0 ? (
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-600">
-            El bucket <strong>music</strong> respondió, pero no devolvió archivos.
-          </p>
-        </section>
+        <div className="rounded-[20px] border border-dashed border-slate-200 bg-white p-12 text-center">
+          <p className="text-sm text-slate-500">No hay música en la biblioteca. Subí el primer archivo.</p>
+        </div>
       ) : (
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                bucket real
-              </p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-900">
-                archivos encontrados
-              </h2>
-            </div>
-
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-              {files.length} archivos
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {files.map((file) => (
-              <div
-                key={file.id ?? file.name}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="text-sm font-medium text-slate-900">{file.name}</p>
-
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                  {file.created_at ? (
-                    <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
-                      creado: {new Date(file.created_at).toLocaleString("es-AR")}
-                    </span>
-                  ) : null}
-
-                  {file.updated_at ? (
-                    <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
-                      actualizado: {new Date(file.updated_at).toLocaleString("es-AR")}
-                    </span>
-                  ) : null}
-                </div>
-
-                {projectId ? (
-                  <AssetSelectButton
-                    projectId={projectId}
-                    assetType="music"
-                    assetValue={`music/${file.name}`}
-                  />
-                ) : null}
+        <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm">
+          {files.map((file, index) => (
+            <div
+              key={file.name}
+              className={"flex items-center gap-4 px-5 py-4 " + (index !== 0 ? "border-t border-slate-100" : "")}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-900">
+                  🎵 {file.name}
+                </p>
+                {file.created_at && (
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    {new Date(file.created_at).toLocaleDateString("es-AR")}
+                  </p>
+                )}
+                <audio controls src={file.url} className="mt-2 w-full h-8" />
               </div>
-            ))}
-          </div>
-        </section>
+
+              {projectId && (
+                <button
+                  type="button"
+                  onClick={() => void handleSelect(file.name)}
+                  disabled={selecting === file.name}
+                  className={
+                    selecting === file.name
+                      ? "shrink-0 rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-white"
+                      : "shrink-0 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  }
+                >
+                  {selecting === file.name ? "seleccionando..." : "usar"}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
