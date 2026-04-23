@@ -2,9 +2,7 @@ import Link from "next/link";
 import SourcesEditor from "@/components/SourcesEditor";
 import ClearMainSourceButton from "@/components/ClearMainSourceButton";
 import RemoveSecondarySourceButton from "@/components/RemoveSecondarySourceButton";
-import ProjectAssetsPanel from "@/components/ProjectAssetsPanel";
-import ProjectVisualSequencePanel from "@/components/ProjectVisualSequencePanel";
-import ProjectLegacyMediaPanel from "@/components/ProjectLegacyMediaPanel";
+import VisualSequenceEditor from "@/components/VisualSequenceEditor";
 import ClearMusicButton from "@/components/ClearMusicButton";
 
 type Props = {
@@ -24,128 +22,91 @@ export default function ProjectMaterialPanel({
   projectId,
   mainSourceUrl,
   secondarySources,
-  selectedImage,
-  selectedVideo,
   selectedMusic,
   summary,
   externalImageUrl,
   externalVideoUrl,
   narrationMode,
+  selectedImage,
+  selectedVideo,
 }: Props) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        1. material
+        01 — material
       </p>
-      <h2 className="mt-2 text-xl font-semibold text-slate-900">
-        fuentes, assets y secuencia base
+      <h2 className="mt-1 text-xl font-semibold text-slate-900">
+        Fuentes, fotos y música
       </h2>
 
       <div className="mt-5 space-y-4">
-        <SourcesEditor
-          projectId={projectId}
-          currentMain={mainSourceUrl || ""}
-        />
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-start justify-between gap-3">
+        {/* Fuentes */}
+        <SourcesEditor projectId={projectId} currentMain={mainSourceUrl} />
+
+        {/* Fuente principal */}
+        {mainSourceUrl && (
+          <div className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="min-w-0 flex-1">
-              <p className="text-xs uppercase tracking-wide text-slate-400">
-                fuente principal
-              </p>
-
-              {mainSourceUrl ? (
-                <a
-                  href={mainSourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block break-all text-sm font-medium text-slate-900 underline underline-offset-4"
-                >
-                  {mainSourceUrl}
-                </a>
-              ) : (
-                <p className="mt-2 text-sm text-slate-500">
-                  No hay fuente principal cargada.
-                </p>
-              )}
+              <p className="text-xs uppercase tracking-wide text-slate-400">fuente principal</p>
+              <a
+                href={mainSourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 block truncate text-sm font-medium text-slate-900 underline underline-offset-4"
+              >
+                {mainSourceUrl}
+              </a>
             </div>
-
-            {mainSourceUrl ? (
-              <ClearMainSourceButton projectId={projectId} />
-            ) : null}
+            <ClearMainSourceButton projectId={projectId} />
           </div>
-        </div>
+        )}
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            fuentes secundarias
-          </p>
-
-          {secondarySources.length > 0 ? (
-            <div className="mt-3 space-y-2">
+        {/* Fuentes secundarias */}
+        {secondarySources.length > 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-400">fuentes secundarias</p>
+            <div className="mt-2 space-y-2">
               {secondarySources.map((source, index) => (
                 <div
-                  key={`${source}-${index}`}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                  key={source + index}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
                 >
                   <a
                     href={source}
                     target="_blank"
                     rel="noreferrer"
-                    className="min-w-0 flex-1 break-all text-sm font-medium text-slate-900 underline underline-offset-4"
+                    className="min-w-0 flex-1 truncate text-sm text-slate-700 underline underline-offset-4"
                   >
                     {source}
                   </a>
-
-                  <RemoveSecondarySourceButton
-                    projectId={projectId}
-                    sourceToRemove={source}
-                  />
+                  <RemoveSecondarySourceButton projectId={projectId} sourceToRemove={source} />
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="mt-2 text-sm text-slate-500">
-              No hay fuentes secundarias cargadas todavía.
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
-        <ProjectAssetsPanel projectId={projectId} />
+        {/* Secuencia de fotos — drag & drop */}
+        <VisualSequenceEditor projectId={projectId} />
 
-        <ProjectVisualSequencePanel projectId={projectId} />
-
+        {/* Música */}
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            música del proyecto
+          <p className="text-xs uppercase tracking-wide text-slate-400">música</p>
+          <p className="mt-1 truncate text-sm text-slate-600">
+            {selectedMusic || "Sin música seleccionada"}
           </p>
-          <p className="mt-2 break-all text-sm text-slate-600">
-            {selectedMusic || "Todavía no hay música seleccionada."}
-          </p>
-
-          <div className="mt-3 flex flex-wrap gap-3">
+          <div className="mt-3 flex flex-wrap gap-2">
             <Link
-              href={`/modules/assets/music?projectId=${projectId}`}
-              className="inline-flex rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href={"/modules/assets/music?projectId=" + projectId}
+              className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
             >
-              {selectedMusic ? "reemplazar música" : "seleccionar música"}
+              {selectedMusic ? "reemplazar" : "seleccionar música"}
             </Link>
-
-            {selectedMusic ? <ClearMusicButton projectId={projectId} /> : null}
+            {selectedMusic && <ClearMusicButton projectId={projectId} />}
           </div>
         </div>
 
-        <ProjectLegacyMediaPanel
-          projectId={projectId}
-          secondarySources={secondarySources}
-          summary={summary}
-          selectedImage={selectedImage}
-          selectedVideo={selectedVideo}
-          selectedMusic={selectedMusic}
-          externalImageUrl={externalImageUrl}
-          externalVideoUrl={externalVideoUrl}
-          narrationMode={narrationMode}
-        />
       </div>
     </section>
   );
