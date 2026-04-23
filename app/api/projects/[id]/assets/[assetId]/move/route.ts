@@ -25,7 +25,7 @@ export async function POST(
       .from("project_assets")
       .select("id, sort_order")
       .eq("project_id", projectId)
-      .eq("asset_type", "image")
+
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
 

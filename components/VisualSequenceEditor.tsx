@@ -10,6 +10,7 @@ type Asset = {
   resolved_url: string | null;
   original_filename: string | null;
   status: string;
+  asset_type: string;
 };
 
 type SequenceRow = {
@@ -30,24 +31,35 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [sequence, setSequence] = useState<SequenceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [movingId, setMovingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   async function loadAll() {
     try {
       setLoading(true);
       setError("");
-      const [assetsRes, seqRes] = await Promise.all([
+      const [imgRes, vidRes, seqRes] = await Promise.all([
         fetch(`/api/projects/${projectId}/assets`, { cache: "no-store" }),
+        fetch(`/api/projects/${projectId}/assets/videos`, { cache: "no-store" }),
         fetch(`/api/projects/${projectId}/visual-sequence`, { cache: "no-store" }),
       ]);
-      const assetsJson = await assetsRes.json();
+      const imgJson = await imgRes.json();
+      const vidJson = await vidRes.json();
       const seqJson = await seqRes.json();
-      setAssets(Array.isArray(assetsJson.assets) ? assetsJson.assets : []);
+
+      const images = (Array.isArray(imgJson.assets) ? imgJson.assets : []).map(
+        (a: Asset) => ({ ...a, asset_type: "image" })
+      );
+      const videos = (Array.isArray(vidJson.assets) ? vidJson.assets : []).map(
+        (a: Asset) => ({ ...a, asset_type: "video" })
+      );
+      const all = [...images, ...videos].sort((a, b) => a.sort_order - b.sort_order);
+      setAssets(all);
       setSequence(Array.isArray(seqJson.sequence) ? seqJson.sequence : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
@@ -58,22 +70,41 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
 
   useEffect(() => { void loadAll(); }, [projectId]);
 
-  async function handleFiles(files: FileList | null) {
+  async function handleImageFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     try {
-      setUploading(true);
+      setUploadingImage(true);
       setError("");
       const formData = new FormData();
       Array.from(files).forEach((f) => formData.append("files", f));
       const res = await fetch(`/api/projects/${projectId}/assets/upload`, { method: "POST", body: formData });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Error al subir");
-      if (inputRef.current) inputRef.current.value = "";
+      if (imageInputRef.current) imageInputRef.current.value = "";
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir fotos");
     } finally {
-      setUploading(false);
+      setUploadingImage(false);
+    }
+  }
+
+  async function handleVideoFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    try {
+      setUploadingVideo(true);
+      setError("");
+      const formData = new FormData();
+      Array.from(files).forEach((f) => formData.append("files", f));
+      const res = await fetch(`/api/projects/${projectId}/assets/upload-video`, { method: "POST", body: formData });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error ?? "Error al subir");
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      await loadAll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir videos");
+    } finally {
+      setUploadingVideo(false);
     }
   }
 
@@ -83,7 +114,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
   }
 
   async function handleDelete(assetId: string) {
-    if (!confirm("Eliminar esta foto?")) return;
+    if (!confirm("Eliminar este archivo?")) return;
     try {
       setDeletingId(assetId);
       const res = await fetch(`/api/projects/${projectId}/assets/${assetId}`, { method: "DELETE" });
@@ -95,22 +126,6 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
       setError(err instanceof Error ? err.message : "Error al eliminar");
     } finally {
       setDeletingId(null);
-    }
-  }
-
-  async function handleMove(assetId: string, direction: "up" | "down") {
-    try {
-      setMovingId(assetId);
-      await fetch(`/api/projects/${projectId}/assets/${assetId}/move`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ direction }),
-      });
-      await loadAll();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al mover");
-    } finally {
-      setMovingId(null);
     }
   }
 
@@ -128,6 +143,20 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
     await loadAll();
   }
 
+  async function handleMoveToPosition(assetId: string, currentIndex: number, targetIndex: number) {
+    if (targetIndex === currentIndex) return;
+    const steps = Math.abs(targetIndex - currentIndex);
+    const direction = targetIndex > currentIndex ? "down" : "up";
+    for (let s = 0; s < steps; s++) {
+      await fetch(`/api/projects/${projectId}/assets/${assetId}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ direction }),
+      });
+    }
+    await loadAll();
+  }
+
   const selectedAsset = assets.find((a) => a.id === selectedId) ?? null;
   const selectedSeq = sequence.find((s) => s.asset_id === selectedId) ?? null;
   const primaryAsset = assets.find((a) => a.is_primary) ?? assets[0] ?? null;
@@ -137,23 +166,35 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            secuencia de fotos
+            secuencia visual
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
-            Usá las flechas para reordenar · Click para editar ajustes
+            Fotos y videos · Click para editar ajustes
           </p>
         </div>
-        <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100">
-          {uploading ? "subiendo..." : "+ fotos"}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => void handleFiles(e.target.files)}
-          />
-        </label>
+        <div className="flex gap-2">
+          <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100">
+            {uploadingImage ? "subiendo..." : "+ fotos"}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => void handleImageFiles(e.target.files)}
+            />
+          </label>
+          <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100">
+            {uploadingVideo ? "subiendo..." : "+ video"}
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => void handleVideoFiles(e.target.files)}
+            />
+          </label>
+        </div>
       </div>
 
       {error && (
@@ -166,7 +207,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
         <p className="mt-4 text-xs text-slate-400">Cargando...</p>
       ) : assets.length === 0 ? (
         <div className="mt-4 flex h-20 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white">
-          <p className="text-xs text-slate-400">No hay fotos. Subí la primera.</p>
+          <p className="text-xs text-slate-400">No hay fotos ni videos. Subí el primero.</p>
         </div>
       ) : (
         <>
@@ -174,12 +215,10 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
             <div className="flex gap-3">
               {assets.map((asset, index) => (
                 <div key={asset.id} className="group relative shrink-0 flex flex-col items-center gap-1">
-                  {/* Número de posición */}
                   <p className="text-[10px] font-semibold text-slate-400">
-                    foto {index + 1}
+                    {asset.asset_type === "video" ? "🎬" : "🖼"} {index + 1}
                   </p>
 
-                  {/* Miniatura */}
                   <div
                     className={
                       "relative h-20 w-28 overflow-hidden rounded-xl border-2 cursor-pointer transition " +
@@ -191,7 +230,21 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
                     }
                     onClick={() => setSelectedId(asset.id === selectedId ? null : asset.id)}
                   >
-                    {asset.resolved_url ? (
+                    {asset.asset_type === "video" && asset.resolved_url ? (
+                      <video
+                        src={asset.resolved_url}
+                        className="h-full w-full object-cover"
+                        muted
+                        preload="metadata"
+                        onLoadedMetadata={(e) => {
+                          (e.target as HTMLVideoElement).currentTime = 1;
+                        }}
+                      />
+                    ) : asset.asset_type === "video" ? (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-800">
+                        <span className="text-2xl">🎬</span>
+                      </div>
+                    ) : asset.resolved_url ? (
                       <img
                         src={asset.resolved_url}
                         alt={asset.original_filename ?? "foto"}
@@ -199,13 +252,12 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs text-slate-400">
-                        sin imagen
+                        sin preview
                       </div>
                     )}
 
-                    {/* Overlay hover */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition group-hover:opacity-100">
-                      {asset.id !== primaryAsset?.id && (
+                      {asset.id !== primaryAsset?.id && asset.asset_type === "image" && (
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); void handleSetPrimary(asset.id); }}
@@ -224,25 +276,22 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
                       </button>
                     </div>
 
-                    {/* Badge portada */}
                     {asset.id === primaryAsset?.id && (
                       <div className="absolute left-1 top-1 rounded-md bg-slate-900 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                         portada
                       </div>
                     )}
                   </div>
-
-
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Panel de ajustes */}
           {selectedAsset && (
             <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold text-slate-700">
+                  {selectedAsset.asset_type === "video" ? "🎬 " : "🖼 "}
                   {selectedAsset.original_filename ?? selectedAsset.label}
                 </p>
                 {sequence.length === 0 && (
@@ -256,43 +305,31 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
                 )}
               </div>
 
+              <div className="mt-3">
+                <p className="mb-1.5 text-xs uppercase tracking-wide text-slate-400">posición</p>
+                <div className="flex gap-2 flex-wrap">
+                  {assets.map((a, i) => {
+                    const currentIndex = assets.findIndex((x) => x.id === selectedAsset.id);
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => void handleMoveToPosition(selectedAsset.id, currentIndex, i)}
+                        className={
+                          a.id === selectedAsset.id
+                            ? "rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white"
+                            : "rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                        }
+                      >
+                        {i + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {selectedSeq ? (
                 <div className="mt-3 space-y-3">
-                  <div>
-                    <p className="mb-1.5 text-xs uppercase tracking-wide text-slate-400">posición en secuencia</p>
-                    <div className="flex items-center gap-2">
-                      {assets.map((a, i) => (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() => {
-                            const currentIndex = assets.findIndex(x => x.id === selectedAsset?.id);
-                            if (i === currentIndex) return;
-                            const steps = i - currentIndex;
-                            const direction = steps > 0 ? "down" : "up";
-                            const abs = Math.abs(steps);
-                            (async () => {
-                              for (let s = 0; s < abs; s++) {
-                                await fetch(`/api/projects/${projectId}/assets/${selectedAsset!.id}/move`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ direction }),
-                                });
-                              }
-                              await loadAll();
-                            })();
-                          }}
-                          className={
-                            a.id === selectedAsset?.id
-                              ? "rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white"
-                              : "rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-                          }
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                   <div>
                     <p className="mb-1.5 text-xs uppercase tracking-wide text-slate-400">rol</p>
                     <div className="flex gap-2">
@@ -362,8 +399,8 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
                   </div>
                 </div>
               ) : (
-                <p className="mt-2 text-xs text-slate-400">
-                  Inicializá la secuencia para editar los ajustes de cada foto.
+                <p className="mt-3 text-xs text-slate-400">
+                  Inicializá la secuencia para editar los ajustes de cada archivo.
                 </p>
               )}
             </div>

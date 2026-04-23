@@ -16,7 +16,7 @@ export async function DELETE(
       .select("id, project_id, asset_type, storage_bucket, storage_path, is_primary")
       .eq("id", assetId)
       .eq("project_id", projectId)
-      .eq("asset_type", "image")
+
       .single();
 
     if (assetError || !asset) {
@@ -44,7 +44,7 @@ export async function DELETE(
       .delete()
       .eq("id", assetId)
       .eq("project_id", projectId)
-      .eq("asset_type", "image");
+
 
     if (deleteError) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function DELETE(
       .from("project_assets")
       .select("id, sort_order, is_primary")
       .eq("project_id", projectId)
-      .eq("asset_type", "image")
+
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
 
