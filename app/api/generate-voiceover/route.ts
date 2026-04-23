@@ -5,12 +5,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const VOICES = [
-  { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", gender: "male", style: "broadcaster" },
-  { id: "nPczCjzI2devNBz1zQrb", name: "Brian", gender: "male", style: "serious" },
-  { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", gender: "male", style: "storyteller" },
-  { id: "XrExE9yKIg1WjnnlVkGX", name: "Matilda", gender: "female", style: "professional" },
-  { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", gender: "female", style: "confident" },
-  { id: "Xb7hH8MSUJpSbSDYk0k2", name: "Alice", gender: "female", style: "educator" },
+  { id: "onyx", name: "Onyx", gender: "M", style: "Broadcaster" },
+  { id: "echo", name: "Echo", gender: "M", style: "Suave" },
+  { id: "fable", name: "Fable", gender: "M", style: "Expresivo" },
+  { id: "nova", name: "Nova", gender: "F", style: "Cálida" },
+  { id: "shimmer", name: "Shimmer", gender: "F", style: "Clara" },
+  { id: "alloy", name: "Alloy", gender: "F", style: "Neutra" },
 ];
 
 export async function POST(req: NextRequest) {
@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.ELEVENLABS_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: "Falta ELEVENLABS_API_KEY en el servidor." },
+        { error: "Falta OPENAI_API_KEY en el servidor." },
         { status: 500 }
       );
     }
@@ -36,29 +36,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Voice ID no válido." }, { status: 400 });
     }
 
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": process.env.ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: text.trim(),
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    const response = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "tts-1",
+        input: text.trim(),
+        voice: voiceId,
+        response_format: "mp3",
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.text();
       return NextResponse.json(
-        { error: `ElevenLabs error: ${error}` },
+        { error: `OpenAI TTS error: ${error}` },
         { status: 500 }
       );
     }

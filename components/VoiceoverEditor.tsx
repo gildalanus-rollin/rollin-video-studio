@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const VOICES = [
-  { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", gender: "M", style: "Broadcaster" },
-  { id: "nPczCjzI2devNBz1zQrb", name: "Brian", gender: "M", style: "Resonant" },
-  { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", gender: "M", style: "Storyteller" },
-  { id: "XrExE9yKIg1WjnnlVkGX", name: "Matilda", gender: "F", style: "Professional" },
-  { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", gender: "F", style: "Confident" },
-  { id: "Xb7hH8MSUJpSbSDYk0k2", name: "Alice", gender: "F", style: "Educator" },
+  { id: "onyx", name: "Onyx", gender: "M", style: "Broadcaster" },
+  { id: "echo", name: "Echo", gender: "M", style: "Suave" },
+  { id: "fable", name: "Fable", gender: "M", style: "Expresivo" },
+  { id: "nova", name: "Nova", gender: "F", style: "Cálida" },
+  { id: "shimmer", name: "Shimmer", gender: "F", style: "Clara" },
+  { id: "alloy", name: "Alloy", gender: "F", style: "Neutra" },
 ];
 
 type Props = {
@@ -34,8 +34,10 @@ export default function VoiceoverEditor({
       setMessage("Primero generá o escribí el guion de locución.");
       return;
     }
+
     setGenerating(true);
     setMessage("");
+
     try {
       const response = await fetch("/api/generate-voiceover", {
         method: "POST",
@@ -46,11 +48,14 @@ export default function VoiceoverEditor({
           text: renderScript,
         }),
       });
+
       const result = await response.json();
+
       if (!response.ok) {
         setMessage(result.error || "No se pudo generar la voz.");
         return;
       }
+
       setAudioUrl(result.url);
       setMessage(`Voz generada con ${result.voice}.`);
       router.refresh();
@@ -64,8 +69,9 @@ export default function VoiceoverEditor({
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-xs uppercase tracking-wide text-slate-400">
-        voz en off — elevenlabs
+        voz en off — openai tts
       </p>
+
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {VOICES.map((voice) => (
           <button
@@ -85,6 +91,7 @@ export default function VoiceoverEditor({
           </button>
         ))}
       </div>
+
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -98,14 +105,21 @@ export default function VoiceoverEditor({
         >
           {generating ? "generando voz..." : "generar voz en off"}
         </button>
-        {message && <span className="text-sm text-slate-500">{message}</span>}
+
+        {message && (
+          <span className="text-sm text-slate-500">{message}</span>
+        )}
       </div>
+
       {audioUrl && (
         <div className="mt-4">
-          <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">preview</p>
+          <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">
+            preview
+          </p>
           <audio controls src={audioUrl} className="w-full rounded-xl" />
         </div>
       )}
+
       {!renderScript.trim() && (
         <p className="mt-3 text-xs text-slate-400">
           Necesitás un guion de locución en el tab Editorial para generar la voz.
