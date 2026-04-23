@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 const CATEGORIES = ["General", "Política", "Economía", "Sociedad", "Espectáculos", "Deportes", "Tecnología"];
 const FORMATS = ["9:16", "16:9", "1:1"];
@@ -30,30 +29,38 @@ export default function NewProjectPage() {
       ? `Fuentes secundarias:\n${secondarySources.trim()}`
       : null;
 
-    const { error } = await supabase.from("projects").insert([{
-      title: title.trim(),
-      category,
-      status: "draft",
-      duration_limit_seconds: duration,
-      output_format: format,
-      main_source_url: mainSourceUrl.trim() || null,
-      notes: formattedNotes,
-    }]);
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          category,
+          duration_limit_seconds: duration,
+          output_format: format,
+          main_source_url: mainSourceUrl.trim() || null,
+          notes: formattedNotes,
+        }),
+      });
 
-    setLoading(false);
+      const json = await res.json();
 
-    if (error) {
+      if (!res.ok) {
+        setError(json.error || "No se pudo crear el proyecto. Intentá de nuevo.");
+        return;
+      }
+
+      router.push("/projects/" + json.id);
+      router.refresh();
+    } catch {
       setError("No se pudo crear el proyecto. Intentá de nuevo.");
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/projects");
-    router.refresh();
   };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {/* Header */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
           nueva pieza
@@ -63,11 +70,9 @@ export default function NewProjectPage() {
         </h1>
       </div>
 
-      {/* Formulario */}
       <div className="rounded-[20px] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="space-y-5">
 
-          {/* Título */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Título <span className="text-slate-400">(mínimo 4 caracteres)</span>
@@ -80,7 +85,6 @@ export default function NewProjectPage() {
             />
           </div>
 
-          {/* Fuente principal */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Fuente principal
@@ -94,21 +98,8 @@ export default function NewProjectPage() {
             />
           </div>
 
-          {/* Fuentes secundarias */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Fuentes secundarias <span className="text-slate-400">(una por línea)</span>
-            </label>
-            <textarea
-              rows={3}
-              placeholder={"https://sitio1.com/nota\nhttps://sitio2.com/video"}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              value={secondarySources}
-              onChange={(e) => setSecondarySources(e.target.value)}
-            />
-          </div>
 
-          {/* Categoría */}
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Categoría
@@ -124,7 +115,6 @@ export default function NewProjectPage() {
             </select>
           </div>
 
-          {/* Duración y formato en fila */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
@@ -171,14 +161,12 @@ export default function NewProjectPage() {
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
               {error}
             </p>
           )}
 
-          {/* Submit */}
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={handleCreate}
