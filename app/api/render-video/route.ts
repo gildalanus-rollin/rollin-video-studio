@@ -217,6 +217,8 @@ export async function POST(req: Request) {
       data.title ||
       "";
 
+    const voiceoverUrl = data.voiceover_url || null;
+
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
@@ -224,6 +226,7 @@ export async function POST(req: Request) {
       script: finalScript,
       image: fallbackImageUrl,
       music: musicUrl,
+      voiceover: voiceoverUrl,
       outputFormat,
       durationInSeconds,
       narrativePreset: data.narrative_preset || "titulo-resumen-foto",

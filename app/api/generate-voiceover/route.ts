@@ -13,8 +13,6 @@ const VOICES = [
   { id: "Xb7hH8MSUJpSbSDYk0k2", name: "Alice", gender: "female", style: "educator" },
 ];
 
-export { VOICES };
-
 export async function POST(req: NextRequest) {
   try {
     const { projectId, voiceId, text } = await req.json();
@@ -35,10 +33,7 @@ export async function POST(req: NextRequest) {
 
     const voice = VOICES.find((v) => v.id === voiceId);
     if (!voice) {
-      return NextResponse.json(
-        { error: "Voice ID no válido." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Voice ID no válido." }, { status: 400 });
     }
 
     const response = await fetch(
@@ -92,17 +87,29 @@ export async function POST(req: NextRequest) {
       .from("audio")
       .getPublicUrl(fileName);
 
+    const voiceoverUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({ voiceover_url: voiceoverUrl })
+      .eq("id", projectId);
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: `Error guardando URL: ${updateError.message}` },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       ok: true,
-      url: publicUrlData.publicUrl,
+      url: voiceoverUrl,
       voice: voice.name,
       fileName,
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Error inesperado",
-      },
+      { error: error instanceof Error ? error.message : "Error inesperado" },
       { status: 500 }
     );
   }

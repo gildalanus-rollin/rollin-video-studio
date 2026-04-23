@@ -36,6 +36,7 @@ export const RemotionRoot = () => {
         subtitleEnabled: true,
         subtitlePosition: "bottom-center",
         subtitleSize: "md",
+        voiceover: null,
       }}
       calculateMetadata={({ props }: { props: any }) => {
         const fps = 30;

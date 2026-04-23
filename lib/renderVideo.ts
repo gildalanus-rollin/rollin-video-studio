@@ -27,6 +27,7 @@ type RenderVideoInput = {
   script?: string;
   image?: string | null;
   music?: string | null;
+  voiceover?: string | null;
   outputFormat?: string;
   durationInSeconds?: number;
   narrativePreset?: string;
@@ -56,6 +57,7 @@ export async function renderVideo(input: RenderVideoInput) {
     script: input.script ?? "",
     image: input.image ?? null,
     music: input.music ?? null,
+    voiceover: input.voiceover ?? null,
     outputFormat: input.outputFormat ?? "16:9",
     durationInSeconds: input.durationInSeconds ?? 15,
     narrativePreset: input.narrativePreset ?? "titulo-resumen-foto",

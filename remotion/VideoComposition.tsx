@@ -40,6 +40,7 @@ type Props = {
   subtitleEnabled?: boolean;
   subtitlePosition?: string;
   subtitleSize?: string;
+  voiceover?: string | null;
   visualSequence?: VisualSequenceScene[];
 };
 
@@ -336,6 +337,7 @@ export const VideoComposition = ({
   script = "",
   image,
   music,
+  voiceover,
   narrativePreset = "titulo-resumen-foto",
   avatarEnabled = true,
   graphicTitleSize = "md",
@@ -455,7 +457,8 @@ export const VideoComposition = ({
         }}
       />
 
-      {musicSrc ? <Audio src={musicSrc} volume={musicVolume} /> : null}
+      {musicSrc ? <Audio src={musicSrc} volume={voiceover ? 0.15 : musicVolume} /> : null}
+      {voiceover ? <Audio src={voiceover} volume={1} /> : null}
       {effectiveOverlayAvatar ? <AvatarWindow /> : null}
 
       {effectiveOverlayTitle ? (
