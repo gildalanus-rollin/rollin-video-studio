@@ -2,6 +2,20 @@ import path from "path";
 import fs from "fs/promises";
 import { bundle } from "@remotion/bundler";
 import { selectComposition, renderMedia } from "@remotion/renderer";
+import { writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import { randomUUID } from "crypto";
+
+async function downloadToTemp(url: string): Promise<string> {
+  const ext = url.split(".").pop()?.split("?")[0] || "mp4";
+  const tmpPath = join(tmpdir(), "remotion-video-" + randomUUID() + "." + ext);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to download " + url + ": " + res.status);
+  const buffer = Buffer.from(await res.arrayBuffer());
+  writeFileSync(tmpPath, buffer);
+  return tmpPath;
+}
 
 type RenderScene = {
   id: string;
