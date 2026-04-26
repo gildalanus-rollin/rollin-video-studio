@@ -41,23 +41,6 @@ export default function ProjectMaterialPanel({
         {/* Fuentes */}
         <SourcesEditor projectId={projectId} currentMain={mainSourceUrl} />
 
-        {/* Fuente principal */}
-        {mainSourceUrl && (
-          <div className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs uppercase tracking-wide text-slate-400">fuente principal</p>
-              <a
-                href={mainSourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block truncate text-sm font-medium text-slate-900 underline underline-offset-4"
-              >
-                {mainSourceUrl}
-              </a>
-            </div>
-            <ClearMainSourceButton projectId={projectId} />
-          </div>
-        )}
 
         {/* Fuentes secundarias */}
         {secondarySources.length > 0 && (
