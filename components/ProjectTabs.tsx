@@ -25,6 +25,7 @@ type Props = {
   avatarOption?: string;
   renderScript: string;
   initialStatus: string;
+  currentVoiceoverUrl?: string;
   imageUrl: string;
   narrativePreset: string;
   graphicTitleSize: string;
@@ -103,6 +104,7 @@ export default function ProjectTabs(props: Props) {
             initialAvatarOption={props.avatarOption}
             renderScript={props.renderScript}
             initialStatus={props.initialStatus}
+            currentVoiceoverUrl={props.currentVoiceoverUrl}
           />
         )}
 

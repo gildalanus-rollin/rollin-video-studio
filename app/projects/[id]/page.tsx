@@ -26,6 +26,7 @@ type Project = {
   main_source_url: string | null;
   notes: string | null;
   render_script?: string | null;
+  voiceover_url?: string | null;
 };
 
 type AssetPreviewRow = {
@@ -46,7 +47,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes, render_script"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes, render_script, voiceover_url"
     )
     .eq("id", id)
     .single();
@@ -192,6 +193,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         voiceOption={parsedNotes.voiceOption}
         avatarOption={parsedNotes.avatarOption}
         renderScript={project.render_script ?? parsedNotes.summary}
+        currentVoiceoverUrl={project.voiceover_url ?? undefined}
         initialStatus={project.status}
         imageUrl={previewImageUrl}
         narrativePreset={effectiveNarrativePreset}
