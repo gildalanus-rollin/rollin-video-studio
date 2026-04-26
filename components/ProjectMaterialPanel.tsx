@@ -35,9 +35,6 @@ export default function ProjectMaterialPanel({
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
         01 — material
       </p>
-      <h2 className="mt-1 text-xl font-semibold text-slate-900">
-        Fuentes, fotos y música
-      </h2>
 
       <div className="mt-5 space-y-4">
 

@@ -119,22 +119,7 @@ export default function ProjectSettingsEditor({
       </p>
 
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
-        <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
-            estado
-          </label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-          >
-            {statusOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+
 
         <div className="space-y-1">
           <label className="text-xs uppercase tracking-wide text-slate-400">

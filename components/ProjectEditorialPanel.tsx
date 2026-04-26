@@ -52,9 +52,6 @@ export default function ProjectEditorialPanel({
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
         2. enfoque editorial
       </p>
-      <h2 className="mt-2 text-xl font-semibold text-slate-900">
-        criterio, narración, resumen y guion
-      </h2>
 
       <div className="mt-5 space-y-4">
         <ProjectSettingsEditor
