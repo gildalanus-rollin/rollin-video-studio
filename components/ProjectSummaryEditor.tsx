@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 type Props = {
+  onSummaryChange?: (summary: string) => void;
   projectId: string;
   mainSourceUrl: string;
   initialSecondarySources: string[];
@@ -40,6 +41,7 @@ export default function ProjectSummaryEditor({
   mainSourceUrl,
   initialSecondarySources,
   initialSummary,
+  onSummaryChange,
   durationLimitSeconds,
 }: Props) {
   const [summary, setSummary] = useState(initialSummary);
@@ -121,6 +123,7 @@ export default function ProjectSummaryEditor({
 
       const generatedSummary = result.summary || "";
       setSummary(generatedSummary);
+      onSummaryChange?.(generatedSummary);
 
       await saveSummaryValue(generatedSummary);
       setMessage("Resumen generado y guardado.");

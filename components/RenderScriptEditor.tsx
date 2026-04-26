@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 type Props = {
+  onRenderScriptChange?: (script: string) => void;
   projectId: string;
   initialRenderScript: string;
   title?: string;
@@ -13,6 +14,7 @@ type Props = {
 export default function RenderScriptEditor({
   projectId,
   initialRenderScript,
+  onRenderScriptChange,
   title = "",
   summary = "",
   durationLimitSeconds = 15,
@@ -90,6 +92,7 @@ export default function RenderScriptEditor({
 
       const generatedRenderScript = result.renderScript || "";
       setRenderScript(generatedRenderScript);
+      onRenderScriptChange?.(generatedRenderScript);
 
       await saveRenderScriptValue(generatedRenderScript);
       setMessage("Locución generada y guardada.");
