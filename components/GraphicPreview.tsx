@@ -267,27 +267,6 @@ export default function GraphicPreview({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-6">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          formato: <span className="font-medium text-slate-900">{outputFormat}</span>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          preset: <span className="font-medium text-slate-900">{narrativePreset}</span>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          título: <span className="font-medium text-slate-900">{getEffectiveTitleSize(outputFormat, graphicTitleSize)}</span>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          avatar: <span className="font-medium text-slate-900">{showAvatar ? "sí" : "no"}</span>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          subtítulo pos: <span className="font-medium text-slate-900">{subtitlePosition || "bottom-center"}</span>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-          subtítulo size: <span className="font-medium text-slate-900">{subtitleSize || "md"}</span>
-        </div>
-      </div>
-
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <p className="text-xs uppercase tracking-wide text-slate-400">
           bloques de subtítulo
