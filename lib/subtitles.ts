@@ -1,4 +1,4 @@
-export function splitLongBlock(block: string, maxChars = 42) {
+export function splitLongBlock(block: string, maxChars = 70) {
   const words = block.split(/\s+/).filter(Boolean);
   const chunks: string[] = [];
   let current = "";
@@ -27,7 +27,7 @@ export function buildSubtitleBlocks(text?: string | null) {
     .filter(Boolean);
 
   if (byLines.length > 1) {
-    return byLines.flatMap((line) => splitLongBlock(line)).slice(0, 8);
+    return byLines.flatMap((line) => splitLongBlock(line));
   }
 
   const sentences =
@@ -43,7 +43,7 @@ export function buildSubtitleBlocks(text?: string | null) {
     for (const sentence of sentences) {
       const candidate = current ? `${current} ${sentence}` : sentence;
 
-      if (candidate.length <= 64) {
+      if (candidate.length <= 80) {
         current = candidate;
       } else {
         if (current) blocks.push(current);
@@ -53,10 +53,10 @@ export function buildSubtitleBlocks(text?: string | null) {
 
     if (current) blocks.push(current);
 
-    return blocks.flatMap((block) => splitLongBlock(block)).slice(0, 8);
+    return blocks.flatMap((block) => splitLongBlock(block));
   }
 
-  return splitLongBlock(clean).slice(0, 8);
+  return splitLongBlock(clean);
 }
 
 export function getSubtitleBlockForFrame(params: {
