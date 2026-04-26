@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         .from("project_assets")
         .select("*")
         .eq("project_id", projectId)
-        .eq("asset_type", "image")
+
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
 
