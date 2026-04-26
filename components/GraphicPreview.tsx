@@ -265,5 +265,7 @@ export default function GraphicPreview({
             </div>
           </div>
         ) : null}
+      </div>
+    </div>
   );
 }
