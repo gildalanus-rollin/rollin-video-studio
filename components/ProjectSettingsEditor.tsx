@@ -14,10 +14,16 @@ type Props = {
 };
 
 const editorialProfiles = [
-  "urgente",
-  "explicativo",
-  "contexto",
-  "impacto",
+  "General",
+  "Política",
+  "Economía",
+  "Sociedad",
+  "Espectáculos",
+  "Deportes",
+  "Tecnología",
+  "Música",
+  "Life Style",
+  "Internacional",
   "seguimiento",
 ];
 
@@ -51,7 +57,7 @@ export default function ProjectSettingsEditor({
 }: Props) {
   const router = useRouter();
   const [editorialProfile, setEditorialProfile] = useState(
-    initialCategory || "explicativo"
+    initialCategory || "General"
   );
   const [narrativePreset, setNarrativePreset] = useState(
     initialNarrativePreset || "titulo-resumen-foto"

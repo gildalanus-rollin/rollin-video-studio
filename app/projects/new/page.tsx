@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const CATEGORIES = ["General", "Política", "Economía", "Sociedad", "Espectáculos", "Deportes", "Tecnología"];
+const CATEGORIES = ["General", "Política", "Economía", "Sociedad", "Espectáculos", "Deportes", "Tecnología", "Música", "Life Style", "Internacional"];
 const FORMATS = ["9:16", "16:9", "1:1"];
 const DURATIONS = [15, 30, 45, 60];
 
