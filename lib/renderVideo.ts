@@ -87,6 +87,9 @@ export async function renderVideo(input: RenderVideoInput) {
     codec: "h264",
     outputLocation,
     inputProps,
+    timeoutInMilliseconds: 120000,
+    concurrency: 1,
+    offthreadVideoCacheSizeInBytes: 256 * 1024 * 1024,
   });
 
   return {
