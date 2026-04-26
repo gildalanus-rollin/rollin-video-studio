@@ -81,6 +81,24 @@ export async function renderVideo(input: RenderVideoInput) {
     input.outputFileName ?? `render-${Date.now()}.mp4`
   );
 
+  // Pre-download videos to local temp files
+  if (inputProps.visualSequence) {
+    for (const scene of inputProps.visualSequence as RenderScene[]) {
+      if (
+        scene.asset?.url &&
+        (scene.asset.url.includes("/videos/") ||
+          /\.(mp4|mov|webm)$/i.test(scene.asset.url))
+      ) {
+        try {
+          const localPath = await downloadToTemp(scene.asset.url);
+          scene.asset.url = localPath;
+        } catch (e) {
+          console.warn("Could not pre-download video:", scene.asset.url, e);
+        }
+      }
+    }
+  }
+
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
