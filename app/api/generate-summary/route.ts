@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -183,7 +184,7 @@ async function fetchSourceMaterial(url: string): Promise<SourceMaterial | null> 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { url, urls, length } = body;
+    const { url, urls, length, projectId } = body;
 
     const requestedUrls = [
       ...(Array.isArray(urls) ? urls : []),
@@ -230,7 +231,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const systemPrompt = [
+    // Obtener prompt por categoría del proyecto
+    let systemPrompt = [
       "Sos un redactor periodístico audiovisual.",
       "Debes resumir una noticia en español para un video informativo corto.",
       getLengthInstruction(normalizedLength),
@@ -240,6 +242,31 @@ export async function POST(req: NextRequest) {
       "No uses viñetas.",
       "Entregá una línea debajo de la otra.",
     ].join(" ");
+
+    if (projectId) {
+      try {
+        const supabase = getSupabaseAdmin();
+        const { data: project } = await supabase
+          .from("projects")
+          .select("category, editorial_profile")
+          .eq("id", projectId)
+          .single();
+
+        const category = project?.editorial_profile || project?.category;
+
+        if (category) {
+          const { data: profile } = await supabase
+            .from("editorial_profiles")
+            .select("system_prompt")
+            .eq("category", category)
+            .single();
+
+          if (profile?.system_prompt) {
+            systemPrompt = profile.system_prompt + " " + getLengthInstruction(normalizedLength);
+          }
+        }
+      } catch {}
+    }
 
     const sourceBlocks = usableSources
       .map(

@@ -108,6 +108,7 @@ export default function ProjectSummaryEditor({
         body: JSON.stringify({
           urls: sourceUrls,
           length: summaryLength,
+          projectId,
         }),
       });
 
