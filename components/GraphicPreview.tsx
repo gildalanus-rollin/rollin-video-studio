@@ -267,28 +267,5 @@ export default function GraphicPreview({
         ) : null}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs uppercase tracking-wide text-slate-400">
-          bloques de subtítulo
-        </p>
-
-        {subtitleBlocks.length > 0 ? (
-          <div className="mt-3 space-y-2">
-            {subtitleBlocks.map((block, index) => (
-              <div
-                key={`${block}-${index}`}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-700"
-              >
-                {index + 1}. {block}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-sm text-slate-500">
-            Todavía no hay guion cargado para previsualizar subtítulos.
-          </p>
-        )}
-      </div>
-    </div>
   );
 }
