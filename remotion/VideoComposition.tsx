@@ -2,7 +2,7 @@ import {
   AbsoluteFill,
   Audio,
   Img,
-  OffthreadVideo,
+  Video,
   interpolate,
   spring,
   useCurrentFrame,
@@ -436,7 +436,7 @@ export const VideoComposition = ({
             ? /\.(mp4|mov|webm|avi|mkv)$/i.test(currentScene.asset.originalFilename)
             : effectiveImageSrc.includes("/videos/");
           return isVideo ? (
-            <OffthreadVideo
+            <Video
               src={effectiveImageSrc}
               style={{
                 position: "absolute",
@@ -447,6 +447,7 @@ export const VideoComposition = ({
               }}
               startFrom={0}
               endAt={currentSceneData ? currentSceneData.sceneDurationInFrames : durationInFrames}
+              volume={0}
             />
           ) : (
             <Img
