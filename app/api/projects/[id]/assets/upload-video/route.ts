@@ -31,7 +31,7 @@ export async function POST(
     }
 
     const invalidFile = files.find(
-      (file) => !file.type || !file.type.startsWith("video/")
+      (file) => !file.type || (!file.type.includes("mp4") && !file.type.includes("x-mp4"))
     );
 
     if (invalidFile) {

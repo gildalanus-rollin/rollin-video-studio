@@ -478,7 +478,7 @@ export const VideoComposition = ({
         }}
       />
 
-      {musicSrc ? <Audio src={musicSrc} volume={voiceover ? 0.15 : musicVolume} /> : null}
+      {musicSrc ? <Audio src={musicSrc} volume={voiceover ? 0.08 : musicVolume} /> : null}
       {voiceover ? <Audio src={voiceover} volume={1} /> : null}
       {effectiveOverlayAvatar ? <AvatarWindow /> : null}
 

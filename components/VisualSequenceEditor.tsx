@@ -189,7 +189,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
             <input
               ref={videoInputRef}
               type="file"
-              accept="video/*"
+              accept="video/mp4,video/x-mp4,.mp4"
               className="hidden"
               onChange={(e) => void handleVideoFiles(e.target.files)}
             />
