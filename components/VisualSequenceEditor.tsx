@@ -81,6 +81,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Error al subir");
       if (imageInputRef.current) imageInputRef.current.value = "";
+      await fetch(`/api/projects/${projectId}/visual-sequence/init`, { method: "POST" });
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir fotos");
@@ -100,6 +101,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Error al subir");
       if (videoInputRef.current) videoInputRef.current.value = "";
+      await fetch(`/api/projects/${projectId}/visual-sequence/init`, { method: "POST" });
       await loadAll();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir videos");
