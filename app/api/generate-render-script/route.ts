@@ -11,16 +11,10 @@ function normalizeLength(durationLimitSeconds?: number) {
   return "long";
 }
 
-function getInstructionByLength(length: "short" | "medium" | "long") {
-  switch (length) {
-    case "short":
-      return "Escribí una locución muy breve, de 2 a 3 frases cortas, pensada para un video de 10 a 15 segundos.";
-    case "long":
-      return "Escribí una locución más desarrollada, de 6 a 8 frases cortas, pensada para un video de 30 a 45 segundos.";
-    case "medium":
-    default:
-      return "Escribí una locución clara y concreta, de 4 a 5 frases cortas, pensada para un video de 15 a 30 segundos.";
-  }
+function getInstructionByLength(length: "short" | "medium" | "long", seconds: number) {
+  // 2.5 palabras/segundo, dejamos 20% de margen
+  const maxWords = Math.floor(seconds * 2.5 * 0.8);
+  return `Escribí una locución de MÁXIMO ${maxWords} palabras en total. Es OBLIGATORIO no superar ese límite. El audio debe durar menos de ${seconds} segundos.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -42,6 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     const length = normalizeLength(durationLimitSeconds);
+    const seconds = Number(durationLimitSeconds) || 15;
 
     const systemPrompt = [
       "Sos un redactor periodístico audiovisual.",
@@ -51,7 +46,7 @@ export async function POST(req: NextRequest) {
       "Cada frase debe poder funcionar también como subtítulo.",
       "No inventes datos que no estén en el material provisto.",
       "Priorizá claridad oral por sobre la escritura formal.",
-      getInstructionByLength(length),
+      getInstructionByLength(length, seconds),
     ].join(" ");
 
     const userPrompt = `Título del proyecto:
