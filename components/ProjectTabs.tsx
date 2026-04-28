@@ -137,7 +137,7 @@ export default function ProjectTabs(props: Props) {
             </h2>
             <div className="mt-5 space-y-3">
               <GenerateExportButton projectId={props.projectId} />
-              
+              <a
                 href={"/projects/" + props.projectId + "/exports"}
                 className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
               >
