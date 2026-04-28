@@ -261,6 +261,15 @@ export async function POST(req: Request) {
       .from("videos")
       .getPublicUrl(fileName);
 
+    // Guardar export en historial
+    await supabase
+      .from("project_exports")
+      .insert({
+        project_id: projectId,
+        video_url: publicUrlData.publicUrl,
+        duration_seconds: durationInSeconds,
+      });
+
     return NextResponse.json({
       success: true,
       fileName,

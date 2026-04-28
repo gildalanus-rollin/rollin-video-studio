@@ -5,6 +5,7 @@ import ProjectMaterialPanel from "@/components/ProjectMaterialPanel";
 import ProjectEditorialPanel from "@/components/ProjectEditorialPanel";
 import ProjectGraphicPanel from "@/components/ProjectGraphicPanel";
 import GenerateExportButton from "@/components/GenerateExportButton";
+import ExportsHistory from "@/components/ExportsHistory";
 
 type Props = {
   projectId: string;
