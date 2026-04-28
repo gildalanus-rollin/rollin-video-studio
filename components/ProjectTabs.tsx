@@ -137,6 +137,12 @@ export default function ProjectTabs(props: Props) {
             </h2>
             <div className="mt-5 space-y-3">
               <GenerateExportButton projectId={props.projectId} />
+              
+                href={"/projects/" + props.projectId + "/exports"}
+                className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                ver historial de exports
+              </a>
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm leading-6 text-slate-500">
                 El export toma el título, el resumen editorial, el render_script,
                 la imagen principal y la secuencia visual del proyecto.
