@@ -50,6 +50,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <span className="text-base">✏️</span>
                 Nuevo proyecto
               </Link>
+              <Link
+                href="/admin/prompts"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                <span className="text-base">⚙️</span>
+                Prompts
+              </Link>
             </nav>
 
             <div className="border-t border-slate-100 px-5 py-4">
