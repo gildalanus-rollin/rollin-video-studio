@@ -41,7 +41,7 @@ export default function ExportsHistory({ projectId }: { projectId: string }) {
               {new Date(exp.created_at).toLocaleString("es-AR")}
             </p>
           </div>
-          
+          <a
             href={exp.video_url}
             target="_blank"
             rel="noreferrer"
