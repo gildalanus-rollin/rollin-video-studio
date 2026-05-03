@@ -53,9 +53,9 @@ function getOutputFormat(width: number, height: number) {
 
 function getTitleFontSize(format: string, size?: string) {
   if (format === "9:16") {
-    if (size === "sm") return 42;
-    if (size === "lg") return 70;
-    return 56;
+    if (size === "sm") return 84;
+    if (size === "lg") return 120;
+    return 100;
   }
   if (format === "1:1") {
     if (size === "sm") return 50;
