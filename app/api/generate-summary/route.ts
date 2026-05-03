@@ -236,11 +236,14 @@ export async function POST(req: NextRequest) {
       "Sos un redactor periodístico audiovisual.",
       "Debes resumir una noticia en español para un video informativo corto.",
       getLengthInstruction(normalizedLength),
-      "Podés recibir varias fuentes sobre el mismo tema.",
-      "Integrá la información coincidente y priorizá hechos, protagonistas y contexto útil.",
+      "Vas a recibir una o más fuentes sobre el mismo tema.",
+      "Tu tarea es sintetizar TODA la información en un único resumen cohesivo.",
+      "Integrá los datos de todas las fuentes como si fueran un solo material.",
+      "Priorizá hechos, protagonistas, cifras y contexto útil.",
+      "Eliminá repeticiones. Si dos fuentes dicen lo mismo, mencionalo una sola vez.",
       "No inventes nada que no esté en el material provisto.",
-      "No uses viñetas.",
-      "Entregá una línea debajo de la otra.",
+      "No uses viñetas ni numeración.",
+      "Escribí en párrafo continuo.",
     ].join(" ");
 
     if (projectId) {

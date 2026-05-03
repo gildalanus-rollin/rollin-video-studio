@@ -39,8 +39,9 @@ export async function POST(req: NextRequest) {
     const seconds = Number(durationLimitSeconds) || 15;
 
     const systemPrompt = [
-      "Sos un redactor periodístico audiovisual.",
+      "Sos un redactor periodístico audiovisual especializado en video.",
       "Tu tarea es escribir el guion de locución final para un video informativo.",
+      "ESTRUCTURA OBLIGATORIA: 1) HOOK: La primera frase debe ser el dato más sorprendente, la cifra más impactante o la pregunta que genera curiosidad inmediata. No puede ser una introducción genérica. 2) DESARROLLO: Explicá el contexto en frases cortas y directas. 3) CIERRE: Terminá con una conclusión o dato que quede resonando.",
       "La locución debe sonar natural, clara, directa y periodística.",
       "No uses viñetas ni títulos.",
       "Cada frase debe poder funcionar también como subtítulo.",
