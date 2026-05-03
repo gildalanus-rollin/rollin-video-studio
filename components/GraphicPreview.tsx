@@ -42,12 +42,12 @@ function getTitleSizeClass(
   if (outputFormat === "9:16") {
     switch (size) {
       case "sm":
-        return "text-base leading-tight";
+        return "text-xl leading-tight";
       case "lg":
-        return "text-3xl leading-[1.03]";
+        return "text-5xl leading-[1.03]";
       case "md":
       default:
-        return "text-3xl leading-[1.04]";
+        return "text-4xl leading-[1.04]";
     }
   }
 
