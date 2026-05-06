@@ -124,6 +124,7 @@ export default function ProjectTabs(props: Props) {
             subtitlePosition={props.subtitlePosition}
             subtitleSize={props.subtitleSize}
             subtitleText={props.subtitleText}
+            durationLimitSeconds={props.durationLimitSeconds}
           />
         )}
 
