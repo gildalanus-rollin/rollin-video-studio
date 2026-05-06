@@ -42,6 +42,7 @@ type Props = {
   subtitlePosition?: string;
   subtitleSize?: string;
   voiceover?: string | null;
+  placas?: { texto: string; momento_segundos: number; duracion_segundos: number }[];
   visualSequence?: VisualSequenceScene[];
 };
 
@@ -346,6 +347,7 @@ export const VideoComposition = ({
   image,
   music,
   voiceover,
+  placas = [],
   narrativePreset = "titulo-resumen-foto",
   avatarEnabled = true,
   graphicTitleSize = "md",
@@ -485,6 +487,50 @@ export const VideoComposition = ({
             "linear-gradient(180deg, rgba(2,6,23,0.25) 0%, rgba(2,6,23,0.58) 65%, rgba(2,6,23,0.82) 100%)",
         }}
       />
+
+      {/* Placas de texto */}
+      {placas.map((placa, i) => {
+        const startFrame = Math.floor(placa.momento_segundos * fps);
+        const endFrame = Math.floor((placa.momento_segundos + placa.duracion_segundos) * fps);
+        if (frame < startFrame || frame >= endFrame) return null;
+        const progress = (frame - startFrame) / Math.min(fps * 0.4, endFrame - startFrame);
+        const opacity = Math.min(1, progress * 3);
+        const translateY = interpolate(Math.min(progress, 1), [0, 1], [30, 0]);
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 48px",
+              opacity,
+              transform: `translateY(${translateY}px)`,
+              zIndex: 50,
+            }}
+          >
+            <div style={{
+              backgroundColor: "rgba(0,0,0,0.55)",
+              borderRadius: 16,
+              padding: "24px 32px",
+            }}>
+              <p style={{
+                color: "white",
+                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
+                fontWeight: 800,
+                textAlign: "center",
+                lineHeight: 1.1,
+                fontFamily: "sans-serif",
+                textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+              }}>
+                {placa.texto}
+              </p>
+            </div>
+          </div>
+        );
+      })}
 
       {musicSrc ? <Audio src={musicSrc} volume={voiceover ? 0.08 : musicVolume} /> : null}
       {voiceover ? <Audio src={voiceover} volume={1} /> : null}

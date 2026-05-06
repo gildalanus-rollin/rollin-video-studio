@@ -53,6 +53,7 @@ type RenderVideoInput = {
   subtitleSize?: string;
   outputFileName?: string;
   visualSequence?: RenderScene[];
+  placas?: { texto: string; momento_segundos: number; duracion_segundos: number }[];
 };
 
 export async function renderVideo(input: RenderVideoInput) {
@@ -82,6 +83,7 @@ export async function renderVideo(input: RenderVideoInput) {
     subtitlePosition: input.subtitlePosition ?? "bottom-center",
     subtitleSize: input.subtitleSize ?? "md",
     visualSequence: input.visualSequence ?? [],
+    placas: input.placas ?? [],
   };
 
   const composition = await selectComposition({

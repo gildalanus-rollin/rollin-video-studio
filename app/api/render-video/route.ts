@@ -219,6 +219,14 @@ export async function POST(req: Request) {
 
     const voiceoverUrl = data.voiceover_url || null;
 
+    // Leer placas
+    const { data: placasData } = await supabase
+      .from("project_placas")
+      .select("texto, momento_segundos, duracion_segundos")
+      .eq("project_id", projectId)
+      .order("orden", { ascending: true });
+    const placas = placasData ?? [];
+
     const { renderVideo } = await import("@/lib/renderVideo");
 
     const result = await renderVideo({
@@ -238,6 +246,7 @@ export async function POST(req: Request) {
       subtitleSize: data.subtitle_size ?? "md",
       outputFileName: fileName,
       visualSequence,
+      placas,
     });
 
     const fileBuffer = await fs.readFile(result.outputLocation);
