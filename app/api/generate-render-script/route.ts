@@ -13,7 +13,7 @@ function normalizeLength(durationLimitSeconds?: number) {
 
 function getInstructionByLength(length: "short" | "medium" | "long", seconds: number) {
   // 2.5 palabras/segundo, dejamos 20% de margen
-  const maxWords = Math.floor(seconds * 2.5 * 0.8);
+  const maxWords = Math.floor(seconds * 3.0 * 0.85);
   return `Escribí una locución de MÁXIMO ${maxWords} palabras en total. Es OBLIGATORIO no superar ese límite. El audio debe durar menos de ${seconds} segundos.`;
 }
 

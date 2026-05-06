@@ -198,11 +198,18 @@ function getSubtitlePositionStyle(position?: string | null) {
         bottom: 28,
         justifyContent: "flex-end" as const,
       };
+    case "middle-center":
+      return {
+        ...base,
+        top: "50%",
+        transform: "translateY(-50%)",
+        justifyContent: "center" as const,
+      };
     case "bottom-center":
     default:
       return {
         ...base,
-        bottom: 28,
+        bottom: 120,
         justifyContent: "center" as const,
       };
   }

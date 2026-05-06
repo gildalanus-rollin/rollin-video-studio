@@ -21,6 +21,7 @@ const TITLE_POSITIONS = [
 
 const SUBTITLE_POSITIONS = [
   { value: "top-center", label: "Arriba" },
+  { value: "middle-center", label: "Centro" },
   { value: "bottom-center", label: "Abajo" },
 ];
 
