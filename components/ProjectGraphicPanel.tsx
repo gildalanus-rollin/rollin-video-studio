@@ -1,6 +1,5 @@
 import GraphicPreview from "@/components/GraphicPreview";
 import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
-import PlacasEditor from "@/components/PlacasEditor";
 
 type Props = {
   projectId: string;
@@ -15,7 +14,6 @@ type Props = {
   subtitlePosition: string;
   subtitleSize: string;
   subtitleText: string;
-  durationLimitSeconds: number;
 };
 
 export default function ProjectGraphicPanel({
@@ -31,7 +29,6 @@ export default function ProjectGraphicPanel({
   subtitlePosition,
   subtitleSize,
   subtitleText,
-  durationLimitSeconds,
 }: Props) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -65,8 +62,6 @@ export default function ProjectGraphicPanel({
           initialSubtitlePosition={subtitlePosition}
           initialSubtitleSize={subtitleSize}
         />
-
-        <PlacasEditor projectId={projectId} durationLimitSeconds={durationLimitSeconds} />
 
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
           Este bloque usa como base la imagen principal del proyecto y el

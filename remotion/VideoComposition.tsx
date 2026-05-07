@@ -42,7 +42,7 @@ type Props = {
   subtitlePosition?: string;
   subtitleSize?: string;
   voiceover?: string | null;
-  placas?: { texto: string; momento_segundos: number; duracion_segundos: number }[];
+  placas?: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string }[];
   visualSequence?: VisualSequenceScene[];
 };
 
@@ -493,34 +493,42 @@ export const VideoComposition = ({
         const startFrame = Math.floor(placa.momento_segundos * fps);
         const endFrame = Math.floor((placa.momento_segundos + placa.duracion_segundos) * fps);
         if (frame < startFrame || frame >= endFrame) return null;
-        const progress = (frame - startFrame) / Math.min(fps * 0.4, endFrame - startFrame);
-        const opacity = Math.min(1, progress * 3);
-        const translateY = interpolate(Math.min(progress, 1), [0, 1], [30, 0]);
+        const relFrame = frame - startFrame;
+        const animFrames = Math.min(fps * 0.4, endFrame - startFrame);
+        const opacity = interpolate(relFrame, [0, animFrames], [0, 1], { extrapolateRight: "clamp" });
+        const translateY = interpolate(relFrame, [0, animFrames], [40, 0], { extrapolateRight: "clamp" });
+        const isTop = placa.posicion === "top";
+        const isLeft = placa.alineacion === "left";
         return (
           <div
             key={i}
             style={{
               position: "absolute",
-              inset: 0,
+              left: 0,
+              right: 0,
+              top: isTop ? 80 : undefined,
+              bottom: isTop ? undefined : undefined,
+              ...(isTop ? {} : { top: "30%", bottom: "30%" }),
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0 48px",
+              alignItems: isTop ? "flex-start" : "center",
+              justifyContent: isLeft ? "flex-start" : "center",
+              padding: isLeft ? "0 48px" : "0 32px",
               opacity,
               transform: `translateY(${translateY}px)`,
               zIndex: 50,
             }}
           >
             <div style={{
-              backgroundColor: "rgba(0,0,0,0.55)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               borderRadius: 16,
-              padding: "24px 32px",
+              padding: "20px 28px",
+              maxWidth: "85%",
             }}>
               <p style={{
                 color: "white",
                 fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
                 fontWeight: 800,
-                textAlign: "center",
+                textAlign: isLeft ? "left" : "center",
                 lineHeight: 1.1,
                 fontFamily: "sans-serif",
                 textShadow: "0 2px 8px rgba(0,0,0,0.5)",

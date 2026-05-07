@@ -1,5 +1,7 @@
 "use client";
 
+import PlacasEditor from "@/components/PlacasEditor";
+
 import { useState } from "react";
 import ProjectSettingsEditor from "@/components/ProjectSettingsEditor";
 import NarrationModeEditor from "@/components/NarrationModeEditor";
@@ -96,6 +98,11 @@ export default function ProjectEditorialPanel({
           summary={currentSummary}
           durationLimitSeconds={durationLimitSeconds}
           onRenderScriptChange={setCurrentRenderScript}
+        />
+
+        <PlacasEditor
+          projectId={projectId}
+          durationLimitSeconds={durationLimitSeconds}
         />
 
         <VoiceoverEditor

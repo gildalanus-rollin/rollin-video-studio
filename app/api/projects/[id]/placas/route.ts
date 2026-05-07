@@ -40,6 +40,8 @@ export async function POST(
         texto: p.texto,
         momento_segundos: p.momento_segundos,
         duracion_segundos: p.duracion_segundos ?? 4,
+        posicion: p.posicion ?? "center",
+        alineacion: p.alineacion ?? "center",
         orden: i + 1,
       }));
       const { error } = await supabase.from("project_placas").insert(rows);
