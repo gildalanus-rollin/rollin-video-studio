@@ -31,6 +31,7 @@ export default function ProjectGraphicPanel({
   subtitlePosition,
   subtitleSize,
   subtitleText,
+  durationLimitSeconds,
 }: Props) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
