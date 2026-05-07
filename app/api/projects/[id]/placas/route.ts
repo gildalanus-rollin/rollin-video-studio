@@ -35,7 +35,7 @@ export async function POST(
     await supabase.from("project_placas").delete().eq("project_id", projectId);
 
     if (placas && placas.length > 0) {
-      const rows = placas.map((p: { texto: string; momento_segundos: number; duracion_segundos: number }, i: number) => ({
+      const rows = placas.map((p: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string }, i: number) => ({
         project_id: projectId,
         texto: p.texto,
         momento_segundos: p.momento_segundos,
