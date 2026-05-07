@@ -132,7 +132,7 @@ export default function PlacasEditor({
       </div>
       {placas.length > 0 && (
         <div className="mt-3 flex items-center gap-3">
-          <button type="button" onClick={save} disabled={saving} className={saving ? "rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-white" : "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"}>
+          <button type="button" onClick={() => save()} disabled={saving} className={saving ? "rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-white" : "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"}>
             {saving ? "guardando..." : "guardar placas"}
           </button>
           {message && <p className="text-xs text-slate-500">{message}</p>}
