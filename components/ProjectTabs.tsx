@@ -82,6 +82,7 @@ export default function ProjectTabs(props: Props) {
             summary={props.summary}
             externalImageUrl={props.externalImageUrl}
             externalVideoUrl={props.externalVideoUrl}
+            durationLimitSeconds={props.durationLimitSeconds}
             narrationMode={props.narrationMode}
           />
         )}

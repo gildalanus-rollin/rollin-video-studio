@@ -97,13 +97,6 @@ export async function renderVideo(input: RenderVideoInput) {
     input.outputFileName ?? `render-${Date.now()}.mp4`
   );
 
-  // Log visual sequence for debugging
-  const videoScenes = (inputProps.visualSequence as RenderScene[] ?? []).filter(
-    (s) => s.asset?.url && /\.(mp4|mov|webm)$/i.test(s.asset.url)
-  );
-  console.log(`[render] Total scenes: ${(inputProps.visualSequence as RenderScene[] ?? []).length}, Video scenes: ${videoScenes.length}`);
-  videoScenes.forEach((s) => console.log(`[render] Video URL: ${s.asset?.url}`));
-
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
@@ -113,11 +106,7 @@ export async function renderVideo(input: RenderVideoInput) {
     timeoutInMilliseconds: 120000,
     concurrency: 1,
     offthreadVideoCacheSizeInBytes: 256 * 1024 * 1024,
-    onBrowserLog: (log) => {
-      if (log.text.includes("error") || log.text.includes("Error")) {
-        console.log(`[browser] ${log.text}`);
-      }
-    },
+
   });
 
   return {

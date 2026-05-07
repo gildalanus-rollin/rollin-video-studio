@@ -1,6 +1,5 @@
 import Link from "next/link";
 import SourcesEditor from "@/components/SourcesEditor";
-import ClearMainSourceButton from "@/components/ClearMainSourceButton";
 import RemoveSecondarySourceButton from "@/components/RemoveSecondarySourceButton";
 import VisualSequenceEditor from "@/components/VisualSequenceEditor";
 import ClearMusicButton from "@/components/ClearMusicButton";
