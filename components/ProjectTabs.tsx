@@ -92,7 +92,6 @@ export default function ProjectTabs(props: Props) {
             title={props.title}
             mainSourceUrl={props.mainSourceUrl}
             effectiveEditorialProfile={props.effectiveEditorialProfile}
-            durationLimitSeconds={props.durationLimitSeconds}
             outputFormat={props.outputFormat}
             secondarySources={props.secondarySources}
             summary={props.summary}
@@ -124,7 +123,6 @@ export default function ProjectTabs(props: Props) {
             subtitlePosition={props.subtitlePosition}
             subtitleSize={props.subtitleSize}
             subtitleText={props.subtitleText}
-            durationLimitSeconds={props.durationLimitSeconds}
           />
         )}
 
