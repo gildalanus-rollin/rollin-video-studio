@@ -222,7 +222,7 @@ export async function POST(req: Request) {
     // Leer placas
     const { data: placasData } = await supabase
       .from("project_placas")
-      .select("texto, momento_segundos, duracion_segundos")
+      .select("texto, momento_segundos, duracion_segundos, posicion, alineacion, tamano, color_fondo, opacidad")
       .eq("project_id", projectId)
       .order("orden", { ascending: true });
     const placas = placasData ?? [];
