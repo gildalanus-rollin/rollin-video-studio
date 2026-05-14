@@ -42,7 +42,7 @@ type Props = {
   subtitlePosition?: string;
   subtitleSize?: string;
   voiceover?: string | null;
-  placas?: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string }[];
+  placas?: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string; tamano?: string; color_fondo?: string; opacidad?: number }[];
   visualSequence?: VisualSequenceScene[];
 };
 
@@ -499,6 +499,15 @@ export const VideoComposition = ({
         const translateY = interpolate(relFrame, [0, animFrames], [40, 0], { extrapolateRight: "clamp" });
         const isTop = placa.posicion === "top";
         const isLeft = placa.alineacion === "left";
+        const opacidadFondo = (placa.opacidad ?? 60) / 100;
+        const colorFondo = placa.color_fondo ?? "negro";
+        const bgColor = colorFondo === "blanco"
+          ? `rgba(255,255,255,${opacidadFondo})`
+          : colorFondo === "rojo"
+          ? `rgba(200,20,20,${opacidadFondo})`
+          : `rgba(0,0,0,${opacidadFondo})`;
+        const textColor = colorFondo === "blanco" ? "#111111" : "#ffffff";
+        const placaFontSize = placa.tamano === "sm" ? 48 : placa.tamano === "lg" ? 90 : 68;
         return (
           <div
             key={i}
@@ -506,9 +515,8 @@ export const VideoComposition = ({
               position: "absolute",
               left: 0,
               right: 0,
-              top: isTop ? 80 : undefined,
-              bottom: isTop ? undefined : undefined,
-              ...(isTop ? {} : { top: "30%", bottom: "30%" }),
+              top: isTop ? 80 : "25%",
+              bottom: isTop ? undefined : "25%",
               display: "flex",
               alignItems: isTop ? "flex-start" : "center",
               justifyContent: isLeft ? "flex-start" : "center",
@@ -519,19 +527,19 @@ export const VideoComposition = ({
             }}
           >
             <div style={{
-              backgroundColor: "rgba(0,0,0,0.6)",
+              backgroundColor: bgColor,
               borderRadius: 16,
               padding: "20px 28px",
-              maxWidth: "85%",
+              maxWidth: "88%",
             }}>
               <p style={{
-                color: "white",
-                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
+                color: textColor,
+                fontSize: placaFontSize,
                 fontWeight: 800,
                 textAlign: isLeft ? "left" : "center",
                 lineHeight: 1.1,
                 fontFamily: "sans-serif",
-                textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                textShadow: colorFondo === "blanco" ? "none" : "0 2px 8px rgba(0,0,0,0.3)",
               }}>
                 {placa.texto}
               </p>
