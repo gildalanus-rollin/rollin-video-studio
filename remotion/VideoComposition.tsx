@@ -488,62 +488,40 @@ export const VideoComposition = ({
         }}
       />
 
-      {/* Placas de texto */}
+      {/* Titulos adicionales */}
       {placas.map((placa, i) => {
         const startFrame = Math.floor(placa.momento_segundos * fps);
         const endFrame = Math.floor((placa.momento_segundos + placa.duracion_segundos) * fps);
         if (frame < startFrame || frame >= endFrame) return null;
         const relFrame = frame - startFrame;
-        const animFrames = Math.min(fps * 0.4, endFrame - startFrame);
+        const animFrames = Math.min(fps * 0.5, endFrame - startFrame);
         const opacity = interpolate(relFrame, [0, animFrames], [0, 1], { extrapolateRight: "clamp" });
         const translateY = interpolate(relFrame, [0, animFrames], [40, 0], { extrapolateRight: "clamp" });
         const isTop = placa.posicion === "top";
-        const isLeft = placa.alineacion === "left";
-        const opacidadFondo = (placa.opacidad ?? 60) / 100;
-        const colorFondo = placa.color_fondo ?? "negro";
-        const bgColor = colorFondo === "blanco"
-          ? `rgba(255,255,255,${opacidadFondo})`
-          : colorFondo === "rojo"
-          ? `rgba(200,20,20,${opacidadFondo})`
-          : `rgba(0,0,0,${opacidadFondo})`;
-        const textColor = colorFondo === "blanco" ? "#111111" : "#ffffff";
-        const placaFontSize = placa.tamano === "sm" ? 48 : placa.tamano === "lg" ? 90 : 68;
+        const titlePos = getTitlePositionStyle({ position: isTop ? "top-left" : "bottom-left", outputFormat });
         return (
           <div
             key={i}
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: isTop ? 80 : "25%",
-              bottom: isTop ? undefined : "25%",
-              display: "flex",
-              alignItems: isTop ? "flex-start" : "center",
-              justifyContent: isLeft ? "flex-start" : "center",
-              padding: isLeft ? "0 48px" : "0 32px",
+              ...titlePos,
               opacity,
               transform: `translateY(${translateY}px)`,
               zIndex: 50,
             }}
           >
-            <div style={{
-              backgroundColor: bgColor,
-              borderRadius: 16,
-              padding: "20px 28px",
-              maxWidth: "88%",
-            }}>
-              <p style={{
-                color: textColor,
-                fontSize: placaFontSize,
+            <p
+              style={{
+                color: "white",
+                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
                 fontWeight: 800,
-                textAlign: isLeft ? "left" : "center",
-                lineHeight: 1.1,
+                lineHeight: 1.05,
                 fontFamily: "sans-serif",
-                textShadow: colorFondo === "blanco" ? "none" : "0 2px 8px rgba(0,0,0,0.3)",
-              }}>
-                {placa.texto}
-              </p>
-            </div>
+                textShadow: "0 2px 12px rgba(0,0,0,0.7)",
+                maxWidth: getTitleBoxWidth(outputFormat),
+              }}
+            >
+              {placa.texto}
+            </p>
           </div>
         );
       })}
