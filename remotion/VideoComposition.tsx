@@ -498,12 +498,14 @@ export const VideoComposition = ({
         const opacity = interpolate(relFrame, [0, animFrames], [0, 1], { extrapolateRight: "clamp" });
         const translateY = interpolate(relFrame, [0, animFrames], [40, 0], { extrapolateRight: "clamp" });
         const isTop = placa.posicion === "top";
-        const titlePos = getTitlePositionStyle({ position: isTop ? "top-left" : "bottom-left", outputFormat });
+        const placaStyle = isTop
+          ? { position: "absolute" as const, top: 0, left: 0, zIndex: 50, padding: 40, display: "flex", alignItems: "flex-start" as const }
+          : { position: "absolute" as const, top: 0, bottom: 0, left: 0, right: 0, zIndex: 50, padding: 40, display: "flex", alignItems: "center" as const, justifyContent: "flex-start" as const };
         return (
           <div
             key={i}
             style={{
-              ...titlePos,
+              ...placaStyle,
               opacity,
               transform: `translateY(${translateY}px)`,
               zIndex: 50,
