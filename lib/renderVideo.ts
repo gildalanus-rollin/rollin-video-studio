@@ -101,6 +101,9 @@ export async function renderVideo(input: RenderVideoInput) {
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
+    onBrowserLog: (log) => {
+      console.log(`[browser] ${log.type}: ${log.text}`);
+    },
     outputLocation,
     inputProps,
     timeoutInMilliseconds: 120000,

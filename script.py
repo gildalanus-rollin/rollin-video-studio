@@ -1,9 +1,20 @@
-with open('remotion/VideoComposition.tsx', 'r', encoding='utf-8') as f:
-    lines = f.readlines()
+with open('lib/renderVideo.ts', 'r', encoding='utf-8') as f:
+    content = f.read()
 
-# Remove line 460 (index 459) which is the duplicate muted
-lines.pop(459)
+old = '  await renderMedia({\n    composition,\n    serveUrl: bundleLocation,\n    codec: "h264",\n    outputLoca'
 
-with open('remotion/VideoComposition.tsx', 'w', encoding='utf-8') as f:
-    f.writelines(lines)
+new = '''  await renderMedia({
+    composition,
+    serveUrl: bundleLocation,
+    codec: "h264",
+    onBrowserLog: (log) => {
+      console.log(`[browser] ${log.type}: ${log.text}`);
+    },
+    outputLoca'''
+
+print("Found:", old in content)
+content = content.replace(old, new)
+
+with open('lib/renderVideo.ts', 'w', encoding='utf-8') as f:
+    f.write(content)
 print("Done")
