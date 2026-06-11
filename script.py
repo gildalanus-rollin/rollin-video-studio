@@ -1,15 +1,9 @@
 with open('remotion/VideoComposition.tsx', 'r', encoding='utf-8') as f:
-    content = f.read()
+    lines = f.readlines()
 
-# Remove duplicate muted
-old = '''              startFrom={0}
-              muted
-              muted'''
-new = '              startFrom={0}\n              muted'
-
-print("Found duplicate:", old in content)
-content = content.replace(old, new)
+# Remove line 460 (index 459) which is the duplicate muted
+lines.pop(459)
 
 with open('remotion/VideoComposition.tsx', 'w', encoding='utf-8') as f:
-    f.write(content)
+    f.writelines(lines)
 print("Done")

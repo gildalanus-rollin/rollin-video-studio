@@ -457,7 +457,6 @@ export const VideoComposition = ({
               startFrom={0}
               muted
               endAt={currentSceneData ? currentSceneData.sceneDurationInFrames : durationInFrames}
-              muted
             />
           ) : (
             <Img
