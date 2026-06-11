@@ -1,33 +1,15 @@
-with open('lib/renderVideo.ts', 'r', encoding='utf-8') as f:
+with open('remotion/VideoComposition.tsx', 'r', encoding='utf-8') as f:
     content = f.read()
 
-old = '''  // Pre-descargar videos para que Remotion pueda renderizarlos
-  if (Array.isArray(inputProps.visualSequence)) {
-    for (const scene of inputProps.visualSequence as any[]) {
-      if (
-        scene.asset?.url &&
-        (scene.asset.url.includes("/videos/") ||
-          /\\.(mp4|mov|webm)$/i.test(scene.asset.url))
-      ) {
-        try {
-          console.log("[render] Descargando video:", scene.asset.url);
-          const localPath = await downloadToTemp(scene.asset.url);
-          scene.asset.url = localPath;
-          console.log("[render] Video descargado a:", localPath);
-        } catch (e) {
-          console.warn("[render] No se pudo descargar video:", e);
-        }
-      }
-    }
-  }
+# Remove duplicate muted
+old = '''              startFrom={0}
+              muted
+              muted'''
+new = '              startFrom={0}\n              muted'
 
-  await renderMedia({'''
-
-new = '  await renderMedia({'
-
-print("Found:", old in content)
+print("Found duplicate:", old in content)
 content = content.replace(old, new)
 
-with open('lib/renderVideo.ts', 'w', encoding='utf-8') as f:
+with open('remotion/VideoComposition.tsx', 'w', encoding='utf-8') as f:
     f.write(content)
 print("Done")
