@@ -455,6 +455,7 @@ export const VideoComposition = ({
                 objectFit: "cover",
               }}
               startFrom={0}
+              muted
               endAt={currentSceneData ? currentSceneData.sceneDurationInFrames : durationInFrames}
               muted
             />
