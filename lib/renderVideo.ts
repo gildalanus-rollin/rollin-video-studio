@@ -108,7 +108,7 @@ export async function renderVideo(input: RenderVideoInput) {
         try {
           console.log("[render] Descargando video:", scene.asset.url);
           const localPath = await downloadToTemp(scene.asset.url);
-          scene.asset.url = "file://" + localPath;
+          scene.asset.url = localPath;
           console.log("[render] Video descargado a:", localPath);
         } catch (e) {
           console.warn("[render] No se pudo descargar video:", e);
