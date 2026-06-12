@@ -1,20 +1,12 @@
-with open('lib/renderVideo.ts', 'r', encoding='utf-8') as f:
+with open('Dockerfile', 'r', encoding='utf-8') as f:
     content = f.read()
 
-old = '  await renderMedia({\n    composition,\n    serveUrl: bundleLocation,\n    codec: "h264",\n    outputLoca'
-
-new = '''  await renderMedia({
-    composition,
-    serveUrl: bundleLocation,
-    codec: "h264",
-    onBrowserLog: (log) => {
-      console.log(`[browser] ${log.type}: ${log.text}`);
-    },
-    outputLoca'''
+old = '  ffmpeg \\\n  chromium \\'
+new = '  ffmpeg \\\n  chromium \\\n  chromium-codecs-ffmpeg-extra \\'
 
 print("Found:", old in content)
 content = content.replace(old, new)
 
-with open('lib/renderVideo.ts', 'w', encoding='utf-8') as f:
+with open('Dockerfile', 'w', encoding='utf-8') as f:
     f.write(content)
 print("Done")
