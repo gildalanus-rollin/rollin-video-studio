@@ -181,12 +181,8 @@ export async function POST(req: Request) {
           id: row.id,
           sequenceOrder: row.sequence_order,
           sceneType: row.scene_type,
-          role: row.role,
           motionPreset: row.motion_preset,
           durationRatio: row.duration_ratio,
-          overlayTitle: row.overlay_title,
-          overlaySubtitles: row.overlay_subtitles,
-          overlayAvatar: row.overlay_avatar,
           asset: row.asset
             ? {
                 id: row.asset.id,

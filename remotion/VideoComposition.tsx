@@ -14,12 +14,8 @@ type VisualSequenceScene = {
   id: string;
   sequenceOrder: number;
   sceneType: string;
-  role: string;
   motionPreset: string;
   durationRatio: number;
-  overlayTitle: boolean;
-  overlaySubtitles: boolean;
-  overlayAvatar: boolean;
   asset: {
     id: string;
     label: string;
@@ -415,13 +411,10 @@ export const VideoComposition = ({
       : null;
 
   const effectiveImageSrc = currentSceneImageSrc || fallbackImageSrc;
-  const effectiveOverlayTitle = currentScene ? currentScene.overlayTitle : true;
-  const effectiveOverlaySubtitles = currentScene
-    ? currentScene.overlaySubtitles
-    : subtitleEnabled;
-  const effectiveOverlayAvatar = currentScene
-    ? currentScene.overlayAvatar
-    : showAvatarGlobal;
+  const sceneIndex = currentSceneData ? visualSequence.indexOf(currentSceneData.scene) : 0;
+  const effectiveOverlayTitle = sceneIndex === 0;
+  const effectiveOverlaySubtitles = subtitleEnabled;
+  const effectiveOverlayAvatar = showAvatarGlobal;
 
   const sceneImageStyle = currentSceneData
     ? getSceneImageStyle(

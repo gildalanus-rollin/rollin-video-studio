@@ -21,12 +21,8 @@ type RenderScene = {
   id: string;
   sequenceOrder: number;
   sceneType: string;
-  role: string;
   motionPreset: string;
   durationRatio: number;
-  overlayTitle: boolean;
-  overlaySubtitles: boolean;
-  overlayAvatar: boolean;
   asset: {
     id: string;
     label: string;
