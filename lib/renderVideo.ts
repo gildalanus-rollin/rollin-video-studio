@@ -97,10 +97,13 @@ export async function renderVideo(input: RenderVideoInput) {
     input.outputFileName ?? `render-${Date.now()}.mp4`
   );
 
+  const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
+
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
+    ...(chromiumPath ? { chromiumExecutable: chromiumPath } : {}),
     onBrowserLog: (log) => {
       console.log(`[browser] ${log.type}: ${log.text}`);
     },
