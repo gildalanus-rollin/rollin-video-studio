@@ -52,12 +52,8 @@ export async function POST(
       asset_id: asset.id,
       sequence_order: startOrder + index,
       scene_type: "image",
-      role: asset.is_primary ? "cover" : "support",
-      motion_preset: "static",
+      motion_preset: "zoom-in",
       duration_ratio: 1.0,
-      overlay_title: startOrder + index === 0,
-      overlay_subtitles: true,
-      overlay_avatar: false,
     }));
 
     const { data: inserted, error: insertError } = await supabase
