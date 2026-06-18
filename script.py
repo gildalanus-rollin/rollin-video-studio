@@ -1,8 +1,18 @@
 with open('lib/renderVideo.ts', 'r', encoding='utf-8') as f:
     content = f.read()
 
-old = '  await renderMedia({\n    composition,\n    serveUrl: bundleLocation,\n    codec: "h264",'
-new = '  await renderMedia({\n    composition,\n    serveUrl: bundleLocation,\n    codec: "h264",\n    logLevel: "verbose",'
+old = '''  const chromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
+
+  await renderMedia({
+    composition,
+    serveUrl: bundleLocation,
+    codec: "h264",
+    ...(chromiumPath ? { chromiumExecutable: chromiumPath } : {}),'''
+
+new = '''  await renderMedia({
+    composition,
+    serveUrl: bundleLocation,
+    codec: "h264",'''
 
 print("Found:", old in content)
 content = content.replace(old, new)
