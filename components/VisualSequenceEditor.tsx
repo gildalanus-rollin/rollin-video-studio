@@ -80,7 +80,12 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
 
   const removeScene = async (id: string) => {
     try {
+      const scene = scenes.find((s) => s.id === id);
       await fetch(`/api/projects/${projectId}/visual-sequence/${id}`, { method: "DELETE" });
+      // Tambien borrar el asset de project_assets
+      if (scene?.asset?.id) {
+        await fetch(`/api/projects/${projectId}/assets/${scene.asset.id}`, { method: "DELETE" });
+      }
       setScenes(scenes.filter((s) => s.id !== id));
       if (selected === id) setSelected(null);
     } catch {}
