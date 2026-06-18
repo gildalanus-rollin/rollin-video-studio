@@ -5,18 +5,17 @@ import { useEffect, useState, useCallback } from "react";
 type Asset = {
   id: string;
   label: string;
-  originalFilename: string;
-  storageUrl: string;
-  assetType: "image" | "video";
+  original_filename: string;
 };
 
 type SequenceScene = {
   id: string;
-  sequenceOrder: number;
-  sceneType: string;
-  motionPreset: string;
-  durationRatio: number;
+  sequence_order: number;
+  scene_type: string;
+  motion_preset: string;
+  duration_ratio: number;
   asset: Asset | null;
+  resolved_url: string | null;
 };
 
 const MOTION_PRESETS = ["static", "pan", "zoom-in", "zoom-out"];
@@ -46,13 +45,13 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
     if (!scene) return;
     const others = scenes.filter((s) => s.id !== id);
     others.splice(newOrder - 1, 0, scene);
-    const reordered = others.map((s, i) => ({ ...s, sequenceOrder: i }));
+    const reordered = others.map((s, i) => ({ ...s, sequence_order: i }));
     setScenes(reordered);
     await saveOrder(reordered);
   };
 
   const updateMotion = async (id: string, motion: string) => {
-    const updated = scenes.map((s) => s.id === id ? { ...s, motionPreset: motion } : s);
+    const updated = scenes.map((s) => s.id === id ? { ...s, motion_preset: motion } : s);
     setScenes(updated);
     await saveMotion(id, motion);
   };
@@ -63,7 +62,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
       await fetch(`/api/projects/${projectId}/visual-sequence/reorder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: ordered.map((s) => ({ id: s.id, sequenceOrder: s.sequenceOrder })) }),
+        body: JSON.stringify({ order: ordered.map((s) => ({ id: s.id, sequenceOrder: s.sequence_order })) }),
       });
     } catch {}
     setSaving(false);
@@ -99,32 +98,33 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
         <p className="text-xs text-slate-400">Sin imágenes o videos. Agregá desde los botones de arriba.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {scenes.map((scene, index) => (
-            <div
-              key={scene.id}
-              onClick={() => setSelected(selected === scene.id ? null : scene.id)}
-              className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition ${selected === scene.id ? "border-slate-900" : "border-transparent"}`}
-              style={{ width: 80, height: 80 }}
-            >
-              {scene.asset?.storageUrl ? (
-                scene.asset.originalFilename?.match(/\.(mp4|mov|webm)$/i) ? (
-                  <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                    <span className="text-white text-xs">▶</span>
-                  </div>
+          {scenes.map((scene, index) => {
+            const isVideo = /\.(mp4|mov|webm)$/i.test(scene.asset?.original_filename || "");
+            return (
+              <div
+                key={scene.id}
+                onClick={() => setSelected(selected === scene.id ? null : scene.id)}
+                className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition ${selected === scene.id ? "border-slate-900" : "border-transparent"}`}
+                style={{ width: 80, height: 80 }}
+              >
+                {scene.resolved_url ? (
+                  isVideo ? (
+                    <video src={scene.resolved_url} className="w-full h-full object-cover" muted />
+                  ) : (
+                    <img src={scene.resolved_url} alt="" className="w-full h-full object-cover" />
+                  )
                 ) : (
-                  <img src={scene.asset.storageUrl} alt="" className="w-full h-full object-cover" />
-                )
-              ) : (
-                <div className="w-full h-full bg-slate-200 flex items-center justify-center">
-                  <span className="text-slate-400 text-xs">?</span>
-                </div>
-              )}
-              <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] rounded px-1">{index + 1}</span>
-              {index === 0 && (
-                <span className="absolute bottom-1 left-1 bg-slate-900 text-white text-[9px] rounded px-1">PORTADA</span>
-              )}
-            </div>
-          ))}
+                  <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                    <span className="text-slate-400 text-xs">?</span>
+                  </div>
+                )}
+                <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] rounded px-1">{index + 1}</span>
+                {index === 0 && (
+                  <span className="absolute bottom-1 left-1 bg-slate-900 text-white text-[9px] rounded px-1">PORTADA</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -141,7 +141,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
               {scenes.map((_, i) => (
                 <button key={i} type="button"
                   onClick={() => moveScene(selectedScene.id, i + 1)}
-                  className={selectedScene.sequenceOrder === i ? "rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium text-white" : "rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"}>
+                  className={selectedScene.sequence_order === i ? "rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium text-white" : "rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"}>
                   {i + 1}
                 </button>
               ))}
@@ -154,7 +154,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
               {MOTION_PRESETS.map((m) => (
                 <button key={m} type="button"
                   onClick={() => updateMotion(selectedScene.id, m)}
-                  className={selectedScene.motionPreset === m ? "rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium text-white" : "rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"}>
+                  className={selectedScene.motion_preset === m ? "rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium text-white" : "rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"}>
                   {m}
                 </button>
               ))}
