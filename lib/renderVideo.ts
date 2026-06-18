@@ -99,6 +99,7 @@ export async function renderVideo(input: RenderVideoInput) {
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
+    logLevel: "verbose",
     ...(chromiumPath ? { chromiumExecutable: chromiumPath } : {}),
     onBrowserLog: (log) => {
       console.log(`[browser] ${log.type}: ${log.text}`);
