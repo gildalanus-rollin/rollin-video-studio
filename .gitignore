@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 .env.local
+Videos/
+script.py
+apply_restyle.py
+apply_restyle_v2.py

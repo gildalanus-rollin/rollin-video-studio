@@ -52,43 +52,106 @@ export default function NewProjectPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">nueva pieza</p>
-        <h1 className="mt-1 text-2xl font-semibold text-slate-900">Crear proyecto</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Crear proyecto</h1>
+        <p className="mt-1 text-sm text-slate-500">Sumá una fuente y armá la base del video.</p>
       </div>
-      <div className="rounded-[20px] border border-slate-200 bg-white p-6 shadow-sm">
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="space-y-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">Título <span className="text-slate-400">(mínimo 4 caracteres)</span></label>
-            <input placeholder="Ej: Milei habló en el Congreso" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Título <span className="text-slate-400">(mínimo 4 caracteres)</span>
+            </label>
+            <input
+              placeholder="Ej: Milei habló en el Congreso"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#14161c]"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">Fuente principal</label>
-            <input type="url" placeholder="https://..." className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={mainSourceUrl} onChange={(e) => setMainSourceUrl(e.target.value)} />
+            <input
+              type="url"
+              placeholder="https://..."
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#14161c]"
+              value={mainSourceUrl}
+              onChange={(e) => setMainSourceUrl(e.target.value)}
+            />
           </div>
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">Categoría</label>
-            <select className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <select
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#14161c]"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
               {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
             </select>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Duración</label>
               <div className="flex gap-2">
-                {DURATIONS.map((d) => (<button key={d} type="button" onClick={() => setDuration(d)} className={duration === d ? "flex-1 rounded-xl bg-slate-900 py-2 text-sm font-medium text-white" : "flex-1 rounded-xl border border-slate-200 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"}>{d}s</button>))}
+                {DURATIONS.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDuration(d)}
+                    className={
+                      duration === d
+                        ? "flex-1 rounded-xl bg-[#14161c] py-2 text-sm font-medium text-white"
+                        : "flex-1 rounded-xl border border-slate-200 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    }
+                  >
+                    {d}s
+                  </button>
+                ))}
               </div>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Formato</label>
               <div className="flex gap-2">
-                {FORMATS.map((f) => (<button key={f} type="button" onClick={() => setFormat(f)} className={format === f ? "flex-1 rounded-xl bg-slate-900 py-2 text-sm font-medium text-white" : "flex-1 rounded-xl border border-slate-200 bg-white py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"}>{f}</button>))}
+                {FORMATS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFormat(f)}
+                    className={
+                      format === f
+                        ? "flex-1 rounded-xl bg-[#14161c] py-2 text-sm font-medium text-white"
+                        : "flex-1 rounded-xl border border-slate-200 bg-white py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    }
+                  >
+                    {f}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
-          {error && (<p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>)}
+
+          {error && (
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+          )}
+
           <div className="flex items-center gap-3 pt-1">
-            <button onClick={handleCreate} disabled={isDisabled} className={isDisabled ? "rounded-xl bg-slate-300 px-5 py-2.5 text-sm font-medium text-white" : "rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"}>{loading ? "creando..." : "Crear proyecto"}</button>
-            <a href="/projects" className="text-sm text-slate-400 transition hover:text-slate-600">cancelar</a>
+            <button
+              onClick={handleCreate}
+              disabled={isDisabled}
+              className={
+                isDisabled
+                  ? "rounded-xl bg-slate-300 px-5 py-2.5 text-sm font-medium text-white"
+                  : "rounded-xl bg-[#14161c] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#1f2230]"
+              }
+            >
+              {loading ? "Creando..." : "Crear proyecto"}
+            </button>
+            <a href="/projects" className="text-sm text-slate-400 transition hover:text-slate-600">
+              Cancelar
+            </a>
           </div>
         </div>
       </div>

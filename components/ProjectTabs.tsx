@@ -61,7 +61,7 @@ export default function ProjectTabs(props: Props) {
             onClick={() => setActiveTab(tab.id)}
             className={
               activeTab === tab.id
-                ? "flex-1 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition"
+                ? "relative flex-1 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition after:absolute after:inset-x-3 after:bottom-0 after:h-[2px] after:rounded-full after:bg-gradient-to-r after:from-orange-500 after:via-pink-500 after:to-fuchsia-500"
                 : "flex-1 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-white/60 hover:text-slate-700"
             }
           >
@@ -128,7 +128,8 @@ export default function ProjectTabs(props: Props) {
         )}
 
         {activeTab === "export" && (
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-fuchsia-500" />
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
               4. export y render
             </p>

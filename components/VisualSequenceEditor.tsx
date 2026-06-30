@@ -97,7 +97,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append("file", file);
-      await fetch(`/api/projects/${projectId}/assets/upload-image`, { method: "POST", body: formData });
+      await fetch(`/api/projects/${projectId}/assets/upload`, { method: "POST", body: formData });
     }
     await fetch(`/api/projects/${projectId}/visual-sequence/init`, { method: "POST" });
     await load();

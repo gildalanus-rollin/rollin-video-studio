@@ -41,6 +41,15 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span className="relative inline-flex w-fit items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-orange-500 via-pink-500 to-fuchsia-500" />
+      <span className="pl-1.5">{status}</span>
+    </span>
+  );
+}
+
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
 
@@ -127,7 +136,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-fuchsia-500" />
+
         <Link
           href="/projects"
           className="inline-flex items-center text-sm font-medium text-slate-500 transition hover:text-slate-900"
@@ -152,9 +163,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </div>
 
           <div className="flex flex-col items-start gap-3">
-            <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-              {project.status}
-            </span>
+            <StatusBadge status={project.status} />
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
                 {project.output_format}

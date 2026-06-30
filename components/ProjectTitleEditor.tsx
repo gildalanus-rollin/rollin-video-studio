@@ -67,10 +67,11 @@ export default function ProjectTitleEditor({ projectId, initialTitle }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Editar título"
-          className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+          className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-pink-400"
         />
         <button type="button" onClick={handleSave} disabled={saving}
-          className={saving ? "rounded-xl bg-slate-300 px-4 py-3 text-sm font-medium text-white" : "rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800"}>
+          className={saving ? "rounded-xl bg-slate-300 px-4 py-3 text-sm font-medium text-white" : "rounded-xl border-2 border-transparent bg-slate-900 bg-clip-padding px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800"}
+          style={!saving ? { boxShadow: "0 0 0 1.5px transparent", backgroundImage: "linear-gradient(#0f172a,#0f172a), linear-gradient(90deg, #f97316, #ec4899, #d946ef)", backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box" } : undefined}>
           {saving ? "guardando..." : "guardar título"}
         </button>
         <button type="button" onClick={handleGenerateSEO} disabled={generating}

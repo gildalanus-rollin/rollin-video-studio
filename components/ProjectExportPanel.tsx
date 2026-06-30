@@ -6,7 +6,8 @@ type Props = {
 
 export default function ProjectExportPanel({ projectId }: Props) {
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+      <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-fuchsia-500" />
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
         4. export y render
       </p>
