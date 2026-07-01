@@ -82,10 +82,13 @@ export async function renderVideo(input: RenderVideoInput) {
     placas: input.placas ?? [],
   };
 
+  const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+
   const composition = await selectComposition({
     serveUrl: bundleLocation,
     id: "RollinExport",
     inputProps,
+    browserExecutable: chromePath,
   });
 
   const outputLocation = path.join(
@@ -93,10 +96,17 @@ export async function renderVideo(input: RenderVideoInput) {
     input.outputFileName ?? `render-${Date.now()}.mp4`
   );
 
+  console.log("[render] Iniciando renderMedia...");
+  const renderStart = Date.now();
+
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
+    browserExecutable: chromePath,
+    onProgress: ({ progress }) => {
+      console.log(`[render] Progreso: ${Math.round(progress * 100)}%`);
+    },
     logLevel: "verbose",
     onBrowserLog: (log) => {
       console.log(`[browser] ${log.type}: ${log.text}`);
@@ -108,6 +118,8 @@ export async function renderVideo(input: RenderVideoInput) {
     offthreadVideoCacheSizeInBytes: 256 * 1024 * 1024,
 
   });
+
+  console.log(`[render] Render completo en ${(Date.now() - renderStart) / 1000}s`);
 
   return {
     outputLocation,
