@@ -144,6 +144,8 @@ function getSubtitlePositionClasses(position?: string | null) {
       return "inset-x-0 top-4 justify-center px-4";
     case "top-right":
       return "right-4 top-4 justify-end";
+    case "middle-center":
+      return "inset-x-0 top-1/2 -translate-y-1/2 justify-center px-4";
     case "bottom-left":
       return "left-4 bottom-3 justify-start";
     case "bottom-right":

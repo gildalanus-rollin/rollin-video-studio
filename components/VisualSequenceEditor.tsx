@@ -81,14 +81,23 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
   const removeScene = async (id: string) => {
     try {
       const scene = scenes.find((s) => s.id === id);
-      await fetch(`/api/projects/${projectId}/visual-sequence/${id}`, { method: "DELETE" });
+      const seqRes = await fetch(`/api/projects/${projectId}/visual-sequence/${id}`, { method: "DELETE" });
+      if (!seqRes.ok) {
+        alert("No se pudo eliminar la escena. Proba de nuevo.");
+        return;
+      }
       // Tambien borrar el asset de project_assets
       if (scene?.asset?.id) {
-        await fetch(`/api/projects/${projectId}/assets/${scene.asset.id}`, { method: "DELETE" });
+        const assetRes = await fetch(`/api/projects/${projectId}/assets/${scene.asset.id}`, { method: "DELETE" });
+        if (!assetRes.ok) {
+          alert("La escena se elimino pero la imagen no se pudo borrar del todo.");
+        }
       }
       setScenes(scenes.filter((s) => s.id !== id));
       if (selected === id) setSelected(null);
-    } catch {}
+    } catch {
+      alert("Error de conexion al intentar eliminar la escena.");
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +105,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
     if (!files || files.length === 0) return;
     for (const file of Array.from(files)) {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("files", file);
       await fetch(`/api/projects/${projectId}/assets/upload`, { method: "POST", body: formData });
     }
     await fetch(`/api/projects/${projectId}/visual-sequence/init`, { method: "POST" });

@@ -6,6 +6,36 @@ export const runtime = "nodejs";
 const ALLOWED_ROLES = ["cover", "support", "closing"] as const;
 const ALLOWED_MOTION_PRESETS = ["static", "pan", "zoom-in", "zoom-out"] as const;
 
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ id: string; sequenceId: string }> }
+) {
+  try {
+    const { id: projectId, sequenceId } = await context.params;
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from("project_visual_sequence")
+      .delete()
+      .eq("id", sequenceId)
+      .eq("project_id", projectId);
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Error inesperado",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string; sequenceId: string }> }
