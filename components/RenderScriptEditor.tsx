@@ -77,6 +77,7 @@ export default function RenderScriptEditor({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          projectId,
           title,
           summary,
           durationLimitSeconds,

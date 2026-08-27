@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ function getInstructionByLength(length: "short" | "medium" | "long", seconds: nu
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, summary, durationLimitSeconds } = await req.json();
+    const { title, summary, durationLimitSeconds, projectId } = await req.json();
 
     if (!summary || typeof summary !== "string" || !summary.trim()) {
       return NextResponse.json(
@@ -38,7 +39,35 @@ export async function POST(req: NextRequest) {
     const length = normalizeLength(durationLimitSeconds);
     const seconds = Number(durationLimitSeconds) || 15;
 
+    let editorialContext = "";
+
+    if (projectId) {
+      try {
+        const supabase = getSupabaseAdmin();
+        const { data: project } = await supabase
+          .from("projects")
+          .select("category, editorial_profile")
+          .eq("id", projectId)
+          .single();
+
+        const category = project?.editorial_profile || project?.category;
+
+        if (category) {
+          const { data: profile } = await supabase
+            .from("editorial_profiles")
+            .select("system_prompt")
+            .eq("category", category)
+            .single();
+
+          if (profile?.system_prompt) {
+            editorialContext = profile.system_prompt;
+          }
+        }
+      } catch {}
+    }
+
     const systemPrompt = [
+      editorialContext,
       "Sos un redactor periodístico audiovisual especializado en video.",
       "Tu tarea es escribir el guion de locución final para un video informativo.",
       "ESTRUCTURA OBLIGATORIA: 1) HOOK: La primera frase debe ser el dato más sorprendente, la cifra más impactante o la pregunta que genera curiosidad inmediata. No puede ser una introducción genérica. 2) DESARROLLO: Explicá el contexto en frases cortas y directas. 3) CIERRE: Terminá con una conclusión o dato que quede resonando.",
@@ -48,7 +77,7 @@ export async function POST(req: NextRequest) {
       "No inventes datos que no estén en el material provisto.",
       "Priorizá claridad oral por sobre la escritura formal.",
       getInstructionByLength(length, seconds),
-    ].join(" ");
+    ].filter(Boolean).join(" ");
 
     const userPrompt = `Título del proyecto:
 ${title || "Sin título"}
