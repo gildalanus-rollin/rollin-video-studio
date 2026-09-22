@@ -30,10 +30,13 @@ export async function POST(
       return NextResponse.json({ error: "No se enviaron archivos" }, { status: 400 });
     }
 
-    const invalidFile = files.find(
-      (file) => !file.type || (!file.type.includes("mp4") && !file.type.includes("x-mp4"))
-    );
-
+    const VIDEO_EXTENSIONS = [".mp4", ".mov", ".webm", ".avi", ".mkv", ".m4v"];
+    const isValidVideoFile = (file: File) => {
+      if (file.type && file.type.startsWith("video/")) return true;
+      const lowerName = (file.name || "").toLowerCase();
+      return VIDEO_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+    };
+    const invalidFile = files.find((file) => !isValidVideoFile(file));
     if (invalidFile) {
       return NextResponse.json({ error: "Solo se permiten videos" }, { status: 400 });
     }

@@ -117,7 +117,7 @@ export default function VisualSequenceEditor({ projectId }: { projectId: string 
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("files", file);
     await fetch(`/api/projects/${projectId}/assets/upload-video`, { method: "POST", body: formData });
     await fetch(`/api/projects/${projectId}/visual-sequence/init`, { method: "POST" });
     await load();
