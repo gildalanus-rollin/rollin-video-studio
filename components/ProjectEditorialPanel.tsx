@@ -102,7 +102,6 @@ export default function ProjectEditorialPanel({
 
         <PlacasEditor
           projectId={projectId}
-          durationLimitSeconds={durationLimitSeconds}
         />
 
         <VoiceoverEditor

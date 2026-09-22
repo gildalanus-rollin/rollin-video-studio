@@ -13,6 +13,7 @@ type Props = {
   subtitleEnabled: boolean;
   subtitlePosition: string;
   subtitleSize: string;
+  subtitleColor: string;
   subtitleText: string;
 };
 
@@ -28,6 +29,7 @@ export default function ProjectGraphicPanel({
   subtitleEnabled,
   subtitlePosition,
   subtitleSize,
+  subtitleColor,
   subtitleText,
 }: Props) {
   return (
@@ -57,11 +59,8 @@ export default function ProjectGraphicPanel({
 
         <GraphicSettingsEditor
           projectId={projectId}
-          initialGraphicTitleSize={graphicTitleSize}
-          initialGraphicTitlePosition={graphicTitlePosition}
           initialAvatarEnabled={avatarEnabled}
-          initialSubtitlePosition={subtitlePosition}
-          initialSubtitleSize={subtitleSize}
+          initialSubtitleColor={subtitleColor}
         />
 
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">

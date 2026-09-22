@@ -1,28 +1,22 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
+type Momento = "inicio" | "mitad" | "final";
+
 type Placa = {
-  texto: string;
-  momento_segundos: number;
-  duracion_segundos: number;
-  posicion: "top" | "center";
+  momento: Momento;
+  titulo: string;
+  antetitulo: string;
 };
 
-const PLACA_VACIA: Placa = {
-  texto: "",
-  momento_segundos: 0,
-  duracion_segundos: 4,
-  posicion: "center",
-};
+const MOMENTOS: { value: Momento; label: string }[] = [
+  { value: "inicio", label: "Inicio" },
+  { value: "mitad", label: "Mitad" },
+  { value: "final", label: "Final" },
+];
 
-export default function PlacasEditor({
-  projectId,
-  durationLimitSeconds,
-}: {
-  projectId: string;
-  durationLimitSeconds: number;
-}) {
+export default function PlacasEditor({ projectId }: { projectId: string }) {
   const [placas, setPlacas] = useState<Placa[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -35,28 +29,25 @@ export default function PlacasEditor({
       });
   }, [projectId]);
 
-  const addPlaca = () => {
-    if (placas.length >= 3) return;
-    const nuevas = [...placas, { ...PLACA_VACIA, momento_segundos: Math.floor(durationLimitSeconds / (placas.length + 2)) }];
-    setPlacas(nuevas);
-  };
+  const isActive = (momento: Momento) => placas.some((p) => p.momento === momento);
+  const getPlaca = (momento: Momento) => placas.find((p) => p.momento === momento);
 
-  const removePlaca = (index: number) => {
-    const nuevas = placas.filter((_, i) => i !== index);
-    setPlacas(nuevas);
-    saveData(nuevas);
-  };
-
-  const updatePlaca = (index: number, field: keyof Placa, value: string | number) => {
-    const updated = [...placas];
-    updated[index] = { ...updated[index], [field]: value };
-    setPlacas(updated);
-    if (field === "texto") {
-      clearTimeout((window as any)._placasTimeout);
-      (window as any)._placasTimeout = setTimeout(() => saveData(updated), 1200);
+  const toggleMomento = (momento: Momento) => {
+    let updated: Placa[];
+    if (isActive(momento)) {
+      updated = placas.filter((p) => p.momento !== momento);
     } else {
-      saveData(updated);
+      updated = [...placas, { momento, titulo: "", antetitulo: "" }];
     }
+    setPlacas(updated);
+    saveData(updated);
+  };
+
+  const updateField = (momento: Momento, field: "titulo" | "antetitulo", value: string) => {
+    const updated = placas.map((p) => (p.momento === momento ? { ...p, [field]: value } : p));
+    setPlacas(updated);
+    clearTimeout((window as any)._placasTimeout);
+    (window as any)._placasTimeout = setTimeout(() => saveData(updated), 1200);
   };
 
   const saveData = async (data: Placa[]) => {
@@ -69,58 +60,69 @@ export default function PlacasEditor({
       });
       setMessage("Guardado.");
       setTimeout(() => setMessage(""), 2000);
-    } catch { setMessage("Error."); }
+    } catch {
+      setMessage("Error.");
+    }
     setSaving(false);
   };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          titulos adicionales ({placas.length}/3)
-          {saving && <span className="ml-2 text-slate-300"> guardando...</span>}
-          {message && <span className="ml-2 text-emerald-500"> {message}</span>}
-        </p>
-        {placas.length < 3 && (
-          <button type="button" onClick={addPlaca} className="rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100">
-            + agregar titulo
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        graficas ({placas.length}/3)
+        {saving && <span className="ml-2 text-slate-300"> guardando...</span>}
+        {message && <span className="ml-2 text-emerald-500"> {message}</span>}
+      </p>
+      <p className="mt-1 text-xs text-slate-400">
+        Elegi entre 0 y 3 momentos. Cuando ninguno esta activo en pantalla, se muestran los subtitulos.
+      </p>
+
+      <div className="mt-3 flex gap-2">
+        {MOMENTOS.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => toggleMomento(m.value)}
+            className={
+              isActive(m.value)
+                ? "flex-1 rounded-xl bg-slate-900 py-2 text-sm font-medium text-white"
+                : "flex-1 rounded-xl border border-slate-200 bg-white py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            }
+          >
+            {m.label}
           </button>
-        )}
-      </div>
-      {placas.length === 0 && (
-        <p className="mt-3 text-xs text-slate-400">Agrega hasta 3 titulos que aparecen en momentos especificos del video.</p>
-      )}
-      <div className="mt-3 space-y-4">
-        {placas.map((placa, index) => (
-          <div key={index} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-600">Titulo {index + 1}</p>
-              <button type="button" onClick={() => removePlaca(index)} className="text-xs text-red-400 hover:text-red-600">quitar</button>
-            </div>
-            <textarea rows={2} value={placa.texto} onChange={(e) => updatePlaca(index, "texto", e.target.value)} placeholder="Texto del titulo..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:bg-white" />
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-400">Aparece a los (seg)</label>
-                <input type="number" min={0} max={durationLimitSeconds} value={placa.momento_segundos} onChange={(e) => updatePlaca(index, "momento_segundos", Number(e.target.value))} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-slate-400" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400">Duracion (seg)</label>
-                <input type="number" min={1} max={15} value={placa.duracion_segundos} onChange={(e) => updatePlaca(index, "duracion_segundos", Number(e.target.value))} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-slate-400" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-slate-400">Posicion</label>
-              <div className="mt-1 flex gap-2">
-                {(["top", "center"] as const).map((pos) => (
-                  <button key={pos} type="button" onClick={() => updatePlaca(index, "posicion", pos)}
-                    className={placa.posicion === pos ? "flex-1 rounded-xl bg-slate-900 py-1.5 text-xs font-medium text-white" : "flex-1 rounded-xl border border-slate-200 bg-white py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"}>
-                    {pos === "top" ? "Arriba" : "Centro"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
         ))}
+      </div>
+
+      <div className="mt-4 space-y-4">
+        {MOMENTOS.filter((m) => isActive(m.value)).map((m) => {
+          const placa = getPlaca(m.value)!;
+          return (
+            <div key={m.value} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+              <p className="text-xs font-semibold text-slate-600">{m.label}</p>
+              <div>
+                <label className="text-xs text-slate-400">Titulo</label>
+                <textarea
+                  rows={2}
+                  value={placa.titulo}
+                  onChange={(e) => updateField(m.value, "titulo", e.target.value)}
+                  placeholder="Titulo de la placa..."
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400">Antetitulo (opcional)</label>
+                <input
+                  type="text"
+                  value={placa.antetitulo}
+                  onChange={(e) => updateField(m.value, "antetitulo", e.target.value)}
+                  placeholder="Linea corta arriba de la categoria..."
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:bg-white"
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

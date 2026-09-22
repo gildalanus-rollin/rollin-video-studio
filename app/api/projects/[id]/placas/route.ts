@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
+
+const MOMENTO_ORDEN: Record<string, number> = { inicio: 1, mitad: 2, final: 3 };
 
 export async function GET(
   _request: Request,
@@ -12,7 +14,7 @@ export async function GET(
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("project_placas")
-      .select("*")
+      .select("titulo, antetitulo, momento")
       .eq("project_id", projectId)
       .order("orden", { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -31,24 +33,23 @@ export async function POST(
     const { placas } = await request.json();
     const supabase = getSupabaseAdmin();
 
-    // Delete existing and re-insert
     await supabase.from("project_placas").delete().eq("project_id", projectId);
 
     if (placas && placas.length > 0) {
-      const rows = placas.map((p: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string; tamano?: string; color_fondo?: string; opacidad?: number }, i: number) => ({
-        project_id: projectId,
-        texto: p.texto,
-        momento_segundos: p.momento_segundos,
-        duracion_segundos: p.duracion_segundos ?? 4,
-        posicion: p.posicion ?? "center",
-        alineacion: p.alineacion ?? "center",
-        tamano: p.tamano ?? "md",
-        color_fondo: p.color_fondo ?? "negro",
-        opacidad: p.opacidad ?? 60,
-        orden: i + 1,
-      }));
-      const { error } = await supabase.from("project_placas").insert(rows);
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      const validMomentos = new Set(["inicio", "mitad", "final"]);
+      const rows = placas
+        .filter((p: { momento: string }) => validMomentos.has(p.momento))
+        .map((p: { titulo: string; antetitulo?: string; momento: string }) => ({
+          project_id: projectId,
+          titulo: p.titulo ?? "",
+          antetitulo: p.antetitulo || null,
+          momento: p.momento,
+          orden: MOMENTO_ORDEN[p.momento],
+        }));
+      if (rows.length > 0) {
+        const { error } = await supabase.from("project_placas").insert(rows);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ ok: true });

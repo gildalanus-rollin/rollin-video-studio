@@ -19,6 +19,7 @@ type Project = {
   subtitle_enabled?: boolean | null;
   subtitle_position?: string | null;
   subtitle_size?: string | null;
+  subtitle_color?: string | null;
   status: string;
   duration_limit_seconds: number;
   output_format: string;
@@ -56,7 +57,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, status, duration_limit_seconds, output_format, created_at, main_source_url, notes, render_script, voiceover_url"
+      "id, title, category, editorial_profile, narrative_preset, graphic_title_size, graphic_title_position, avatar_enabled, subtitle_enabled, subtitle_position, subtitle_size, subtitle_color, status, duration_limit_seconds, output_format, created_at, main_source_url, notes, render_script, voiceover_url"
     )
     .eq("id", id)
     .single();
@@ -99,6 +100,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const effectiveSubtitleEnabled = project.subtitle_enabled ?? true;
   const effectiveSubtitlePosition = project.subtitle_position ?? "bottom-center";
   const effectiveSubtitleSize = project.subtitle_size ?? "md";
+  const effectiveSubtitleColor = project.subtitle_color ?? "blanco";
 
   // Usar la primera imagen de la secuencia visual como portada
   const { data: firstSceneRows } = await supabaseAdmin
@@ -215,6 +217,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         subtitleEnabled={effectiveSubtitleEnabled}
         subtitlePosition={effectiveSubtitlePosition}
         subtitleSize={effectiveSubtitleSize}
+        subtitleColor={effectiveSubtitleColor}
         subtitleText={previewSubtitleText}
       />
     </div>

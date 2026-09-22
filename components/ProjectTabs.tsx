@@ -36,6 +36,7 @@ type Props = {
   subtitleEnabled: boolean;
   subtitlePosition: string;
   subtitleSize: string;
+  subtitleColor: string;
   subtitleText: string;
 };
 
@@ -123,6 +124,7 @@ export default function ProjectTabs(props: Props) {
             subtitleEnabled={props.subtitleEnabled}
             subtitlePosition={props.subtitlePosition}
             subtitleSize={props.subtitleSize}
+            subtitleColor={props.subtitleColor}
             subtitleText={props.subtitleText}
           />
         )}
