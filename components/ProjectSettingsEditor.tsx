@@ -120,7 +120,7 @@ export default function ProjectSettingsEditor({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-400">
+      <p className="text-sm uppercase tracking-wide text-slate-400">
         enfoque y export
       </p>
 
@@ -128,16 +128,16 @@ export default function ProjectSettingsEditor({
 
 
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
+          <label className="text-sm uppercase tracking-wide text-slate-400">
             perfil editorial
           </label>
           <select
             value={editorialProfile}
             onChange={(e) => setEditorialProfile(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-900"
           >
             {editorialProfiles.map((profile) => (
-              <option key={profile} value={profile}>
+              <option key={profile} value={profile} style={{ fontSize: "16px" }}>
                 {profile}
               </option>
             ))}
@@ -145,16 +145,16 @@ export default function ProjectSettingsEditor({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
+          <label className="text-sm uppercase tracking-wide text-slate-400">
             preset narrativo
           </label>
           <select
             value={narrativePreset}
             onChange={(e) => setNarrativePreset(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-900"
           >
             {narrativePresets.map((preset) => (
-              <option key={preset.value} value={preset.value}>
+              <option key={preset.value} value={preset.value} style={{ fontSize: "16px" }}>
                 {preset.label}
               </option>
             ))}
@@ -162,16 +162,16 @@ export default function ProjectSettingsEditor({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
+          <label className="text-sm uppercase tracking-wide text-slate-400">
             duración objetivo
           </label>
           <select
             value={durationLimitSeconds}
             onChange={(e) => setDurationLimitSeconds(Number(e.target.value))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-900"
           >
             {durationOptions.map((seconds) => (
-              <option key={seconds} value={seconds}>
+              <option key={seconds} value={seconds} style={{ fontSize: "16px" }}>
                 {seconds}s
               </option>
             ))}
@@ -179,31 +179,31 @@ export default function ProjectSettingsEditor({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
+          <label className="text-sm uppercase tracking-wide text-slate-400">
             formato de salida
           </label>
           <select
             value={outputFormat}
             onChange={(e) => setOutputFormat(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-900"
           >
-            <option value="16:9">16:9</option>
-            <option value="9:16">9:16</option>
-            <option value="1:1">1:1</option>
+            <option value="16:9" style={{ fontSize: "16px" }}>16:9</option>
+            <option value="9:16" style={{ fontSize: "16px" }}>9:16</option>
+            <option value="1:1" style={{ fontSize: "16px" }}>1:1</option>
           </select>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-wide text-slate-400">
+          <label className="text-sm uppercase tracking-wide text-slate-400">
             subtítulos
           </label>
           <select
             value={subtitleEnabled ? "on" : "off"}
             onChange={(e) => setSubtitleEnabled(e.target.value === "on")}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-900"
           >
-            <option value="on">sí</option>
-            <option value="off">no</option>
+            <option value="on" style={{ fontSize: "16px" }}>sí</option>
+            <option value="off" style={{ fontSize: "16px" }}>no</option>
           </select>
         </div>
       </div>
