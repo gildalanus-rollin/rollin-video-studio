@@ -1,4 +1,4 @@
-import GraphicPreview from "@/components/GraphicPreview";
+﻿import GraphicPreview from "@/components/GraphicPreview";
 import GraphicSettingsEditor from "@/components/GraphicSettingsEditor";
 
 type Props = {
@@ -7,14 +7,12 @@ type Props = {
   imageUrl: string;
   outputFormat: string;
   narrativePreset: string;
-  graphicTitleSize: string;
-  graphicTitlePosition: string;
   avatarEnabled: boolean;
   subtitleEnabled: boolean;
-  subtitlePosition: string;
-  subtitleSize: string;
   subtitleColor: string;
   subtitleText: string;
+  category: string;
+  date: string;
 };
 
 export default function ProjectGraphicPanel({
@@ -23,20 +21,18 @@ export default function ProjectGraphicPanel({
   imageUrl,
   outputFormat,
   narrativePreset,
-  graphicTitleSize,
-  graphicTitlePosition,
   avatarEnabled,
   subtitleEnabled,
-  subtitlePosition,
-  subtitleSize,
   subtitleColor,
   subtitleText,
+  category,
+  date,
 }: Props) {
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
       <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-fuchsia-500" />
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-        3. gráfica
+        3. grafica
       </p>
       <h2 className="mt-2 text-xl font-semibold text-slate-900">
         vista editorial y ajustes visuales
@@ -44,17 +40,17 @@ export default function ProjectGraphicPanel({
 
       <div className="mt-5 space-y-4">
         <GraphicPreview
+          projectId={projectId}
           title={title}
           imageUrl={imageUrl}
           outputFormat={outputFormat}
           narrativePreset={narrativePreset}
-          graphicTitleSize={graphicTitleSize}
-          graphicTitlePosition={graphicTitlePosition}
           avatarEnabled={avatarEnabled}
           subtitleEnabled={subtitleEnabled}
-          subtitlePosition={subtitlePosition}
-          subtitleSize={subtitleSize}
+          subtitleColor={subtitleColor}
           subtitleText={subtitleText}
+          category={category}
+          date={date}
         />
 
         <GraphicSettingsEditor
@@ -65,7 +61,7 @@ export default function ProjectGraphicPanel({
 
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
           Este bloque usa como base la imagen principal del proyecto y el
-          guion de render para que la lectura editorial sea más consistente.
+          guion de render para que la lectura editorial sea mas consistente.
         </div>
       </div>
     </section>

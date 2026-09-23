@@ -1,4 +1,4 @@
-import path from "path";
+﻿import path from "path";
 import fs from "fs/promises";
 import { bundle } from "@remotion/bundler";
 import { selectComposition, renderMedia } from "@remotion/renderer";
@@ -32,6 +32,12 @@ type RenderScene = {
   } | null;
 };
 
+type RenderPlaca = {
+  titulo: string;
+  antetitulo?: string | null;
+  momento: "inicio" | "mitad" | "final";
+};
+
 type RenderVideoInput = {
   title?: string;
   script?: string;
@@ -42,14 +48,13 @@ type RenderVideoInput = {
   durationInSeconds?: number;
   narrativePreset?: string;
   avatarEnabled?: boolean;
-  graphicTitleSize?: string;
-  graphicTitlePosition?: string;
   subtitleEnabled?: boolean;
-  subtitlePosition?: string;
-  subtitleSize?: string;
+  subtitleColor?: string;
+  category?: string;
+  date?: string;
   outputFileName?: string;
   visualSequence?: RenderScene[];
-  placas?: { texto: string; momento_segundos: number; duracion_segundos: number }[];
+  placas?: RenderPlaca[];
 };
 
 export async function renderVideo(input: RenderVideoInput) {
@@ -73,11 +78,10 @@ export async function renderVideo(input: RenderVideoInput) {
     durationInSeconds: input.durationInSeconds ?? 15,
     narrativePreset: input.narrativePreset ?? "titulo-resumen-foto",
     avatarEnabled: input.avatarEnabled ?? true,
-    graphicTitleSize: input.graphicTitleSize ?? "md",
-    graphicTitlePosition: input.graphicTitlePosition ?? "bottom-left",
     subtitleEnabled: input.subtitleEnabled ?? true,
-    subtitlePosition: input.subtitlePosition ?? "bottom-center",
-    subtitleSize: input.subtitleSize ?? "md",
+    subtitleColor: input.subtitleColor ?? "blanco",
+    category: input.category ?? "General",
+    date: input.date ?? "",
     visualSequence: input.visualSequence ?? [],
     placas: input.placas ?? [],
   };

@@ -30,14 +30,12 @@ type Props = {
   currentVoiceoverUrl?: string;
   imageUrl: string;
   narrativePreset: string;
-  graphicTitleSize: string;
-  graphicTitlePosition: string;
   avatarEnabled: boolean;
   subtitleEnabled: boolean;
-  subtitlePosition: string;
-  subtitleSize: string;
   subtitleColor: string;
   subtitleText: string;
+  category: string;
+  date: string;
 };
 
 const TABS = [
@@ -118,14 +116,12 @@ export default function ProjectTabs(props: Props) {
             imageUrl={props.imageUrl}
             outputFormat={props.outputFormat}
             narrativePreset={props.narrativePreset}
-            graphicTitleSize={props.graphicTitleSize}
-            graphicTitlePosition={props.graphicTitlePosition}
             avatarEnabled={props.avatarEnabled}
             subtitleEnabled={props.subtitleEnabled}
-            subtitlePosition={props.subtitlePosition}
-            subtitleSize={props.subtitleSize}
             subtitleColor={props.subtitleColor}
             subtitleText={props.subtitleText}
+            category={props.category}
+            date={props.date}
           />
         )}
 

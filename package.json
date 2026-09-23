@@ -13,6 +13,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@remotion/cli": "4.0.441",
+    "@remotion/google-fonts": "^4.0.441",
     "@remotion/player": "4.0.441",
     "@remotion/renderer": "4.0.441",
     "@supabase/ssr": "^0.10.2",

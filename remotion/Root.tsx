@@ -31,11 +31,10 @@ export const RemotionRoot = () => {
         durationInSeconds: 15,
         narrativePreset: "titulo-resumen-foto",
         avatarEnabled: true,
-        graphicTitleSize: "md",
-        graphicTitlePosition: "bottom-left",
         subtitleEnabled: true,
-        subtitlePosition: "bottom-center",
-        subtitleSize: "md",
+        subtitleColor: "blanco",
+        category: "General",
+        date: "",
         voiceover: null,
       }}
       calculateMetadata={({ props }: { props: any }) => {

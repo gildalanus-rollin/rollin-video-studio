@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { parseProjectNotes } from "@/lib/projectNotes";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import fs from "fs/promises";
@@ -51,6 +51,16 @@ function safeFileName(value: string) {
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
+}
+
+function formatDateDDMMYYYY(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
 }
 
 function resolveAssetUrl(
@@ -215,13 +225,17 @@ export async function POST(req: Request) {
 
     const voiceoverUrl = data.voiceover_url || null;
 
-    // Leer placas
+    // Leer placas (sistema nuevo: momento fijo en vez de segundos sueltos)
     const { data: placasData } = await supabase
       .from("project_placas")
-      .select("texto, momento_segundos, duracion_segundos, posicion, alineacion, tamano, color_fondo, opacidad")
+      .select("titulo, antetitulo, momento")
       .eq("project_id", projectId)
       .order("orden", { ascending: true });
     const placas = placasData ?? [];
+
+    const category = data.editorial_profile || "General";
+    const dateLabel = formatDateDDMMYYYY(data.created_at);
+    const subtitleColor = data.subtitle_color || "blanco";
 
     const { renderVideo } = await import("@/lib/renderVideo");
 
@@ -235,11 +249,10 @@ export async function POST(req: Request) {
       durationInSeconds,
       narrativePreset: data.narrative_preset || "titulo-resumen-foto",
       avatarEnabled: data.avatar_enabled ?? true,
-      graphicTitleSize: data.graphic_title_size ?? "md",
-      graphicTitlePosition: data.graphic_title_position ?? "bottom-left",
       subtitleEnabled: data.subtitle_enabled ?? true,
-      subtitlePosition: data.subtitle_position ?? "bottom-center",
-      subtitleSize: data.subtitle_size ?? "md",
+      subtitleColor,
+      category,
+      date: dateLabel,
       outputFileName: fileName,
       visualSequence,
       placas,
@@ -287,13 +300,13 @@ export async function POST(req: Request) {
         durationUsed: durationInSeconds,
         narrativePresetUsed: data.narrative_preset || "titulo-resumen-foto",
         avatarEnabledUsed: data.avatar_enabled ?? true,
-        graphicTitleSizeUsed: data.graphic_title_size ?? "md",
-        graphicTitlePositionUsed: data.graphic_title_position ?? "bottom-left",
         subtitleEnabledUsed: data.subtitle_enabled ?? true,
-        subtitlePositionUsed: data.subtitle_position ?? "bottom-center",
-        subtitleSizeUsed: data.subtitle_size ?? "md",
+        subtitleColorUsed: subtitleColor,
+        categoryUsed: category,
+        dateUsed: dateLabel,
         renderScriptUsed: finalScript,
         visualSequenceCount: visualSequence.length,
+        placasCount: placas.length,
       },
     });
   } catch (e: any) {

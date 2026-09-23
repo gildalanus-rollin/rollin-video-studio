@@ -1,14 +1,28 @@
-import {
+﻿import {
   AbsoluteFill,
   Audio,
   Img,
   OffthreadVideo,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
+import { loadFont as loadBarlowCondensed } from "@remotion/google-fonts/BarlowCondensed";
+import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
 import { getSubtitleBlockForFrame } from "../lib/subtitles";
+import { LAYOUT, SUBTITLE_COLORS, tituloFontSizeFrac } from "../lib/graphicLayout";
+import type { Momento } from "../lib/graphicLayout";
+
+const { fontFamily: oswaldFontFamily } = loadOswald("normal", {
+  weights: ["500", "600", "700"],
+});
+const { fontFamily: barlowCondensedFontFamily } = loadBarlowCondensed("normal", {
+  weights: ["500", "600"],
+});
+const { fontFamily: manropeFontFamily } = loadManrope("normal", {
+  weights: ["500", "800"],
+});
 
 type VisualSequenceScene = {
   id: string;
@@ -25,6 +39,12 @@ type VisualSequenceScene = {
   } | null;
 };
 
+type Placa = {
+  titulo: string;
+  antetitulo?: string | null;
+  momento: Momento;
+};
+
 type Props = {
   title?: string;
   script?: string;
@@ -32,13 +52,12 @@ type Props = {
   music?: string | null;
   narrativePreset?: string;
   avatarEnabled?: boolean;
-  graphicTitleSize?: string;
-  graphicTitlePosition?: string;
   subtitleEnabled?: boolean;
-  subtitlePosition?: string;
-  subtitleSize?: string;
+  subtitleColor?: string;
   voiceover?: string | null;
-  placas?: { texto: string; momento_segundos: number; duracion_segundos: number; posicion?: string; alineacion?: string; tamano?: string; color_fondo?: string; opacidad?: number }[];
+  category?: string;
+  date?: string;
+  placas?: Placa[];
   visualSequence?: VisualSequenceScene[];
 };
 
@@ -46,170 +65,6 @@ function getOutputFormat(width: number, height: number) {
   if (width === 1080 && height === 1920) return "9:16";
   if (width === 1080 && height === 1080) return "1:1";
   return "16:9";
-}
-
-function getTitleFontSize(format: string, size?: string) {
-  if (format === "9:16") {
-    if (size === "sm") return 84;
-    if (size === "lg") return 120;
-    return 100;
-  }
-  if (format === "1:1") {
-    if (size === "sm") return 50;
-    if (size === "lg") return 76;
-    return 62;
-  }
-  if (size === "sm") return 46;
-  if (size === "lg") return 82;
-  return 64;
-}
-
-function getSubtitleFontSize(format: string, size?: string) {
-  if (format === "9:16") {
-    if (size === "sm") return 24;
-    if (size === "lg") return 34;
-    return 28;
-  }
-  if (size === "sm") return 22;
-  if (size === "lg") return 36;
-  return 28;
-}
-
-function getTitleBoxWidth(format: string) {
-  if (format === "9:16") return "78%";
-  if (format === "1:1") return "82%";
-  return "72%";
-}
-
-function getSubtitleBoxWidth(format: string) {
-  if (format === "9:16") return "78%";
-  if (format === "1:1") return "82%";
-  return "62%";
-}
-
-function getTitlePositionStyle(params: {
-  position?: string | null;
-  subtitleEnabled?: boolean;
-  subtitlePosition?: string | null;
-  outputFormat: string;
-}) {
-  const { position, subtitleEnabled, subtitlePosition, outputFormat } = params;
-
-  const subtitleAtBottom =
-    subtitleEnabled &&
-    (subtitlePosition === "bottom-left" ||
-      subtitlePosition === "bottom-center" ||
-      subtitlePosition === "bottom-right" ||
-      !subtitlePosition);
-
-  const bottomOffset =
-    outputFormat === "9:16" ? 210 : outputFormat === "1:1" ? 185 : 130;
-
-  const base = {
-    position: "absolute" as const,
-    zIndex: 10,
-    display: "flex",
-    padding: 40,
-  };
-
-  switch (position) {
-    case "top-left":
-      return { ...base, top: 0, left: 0, alignItems: "flex-start" as const };
-    case "top-center":
-      return {
-        ...base,
-        top: 0,
-        left: 0,
-        right: 0,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
-      };
-    case "top-right":
-      return { ...base, top: 0, right: 0, alignItems: "flex-end" as const };
-    case "bottom-center":
-      return {
-        ...base,
-        left: 0,
-        right: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        justifyContent: "center" as const,
-        alignItems: "center" as const,
-      };
-    case "bottom-right":
-      return {
-        ...base,
-        right: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        alignItems: "flex-end" as const,
-      };
-    case "bottom-left":
-    default:
-      return {
-        ...base,
-        left: 0,
-        bottom: subtitleAtBottom ? bottomOffset : 0,
-        alignItems: "flex-start" as const,
-      };
-  }
-}
-
-function getSubtitlePositionStyle(position?: string | null) {
-  const base = {
-    position: "absolute" as const,
-    zIndex: 30,
-    display: "flex",
-    left: 0,
-    right: 0,
-    paddingLeft: 32,
-    paddingRight: 32,
-  };
-
-  switch (position) {
-    case "top-left":
-      return {
-        ...base,
-        top: 28,
-        justifyContent: "flex-start" as const,
-      };
-    case "top-center":
-      return {
-        ...base,
-        top: 28,
-        justifyContent: "center" as const,
-      };
-    case "top-right":
-      return {
-        ...base,
-        top: 28,
-        justifyContent: "flex-end" as const,
-      };
-    case "bottom-left":
-      return {
-        ...base,
-        bottom: 28,
-        justifyContent: "flex-start" as const,
-      };
-    case "bottom-right":
-      return {
-        ...base,
-        bottom: 28,
-        justifyContent: "flex-end" as const,
-      };
-    case "middle-center":
-      return {
-        ...base,
-        top: "50%",
-        transform: "translateY(-50%)",
-        justifyContent: "center" as const,
-      };
-    case "bottom-center":
-    default:
-      return {
-        ...base,
-        bottom: 120,
-        justifyContent: "center" as const,
-      };
-  }
 }
 
 const AvatarWindow = () => {
@@ -261,44 +116,90 @@ const AvatarWindow = () => {
 function getSceneForFrame(
   visualSequence: VisualSequenceScene[],
   frame: number,
-  durationInFrames: number
+  durationInFrames: number,
+  fps: number,
+  activeMomentos: Set<Momento>
 ) {
-  if (!visualSequence.length) return null;
+  const n = visualSequence.length;
+  if (n === 0) return null;
+
+  const middleIndex = Math.floor((n - 1) / 2);
+
+  const targetIndices = new Set<number>();
+  if (activeMomentos.has("inicio")) targetIndices.add(0);
+  if (activeMomentos.has("final")) targetIndices.add(n - 1);
+  if (activeMomentos.has("mitad")) targetIndices.add(middleIndex);
+
+  const minFrames = Math.round(5 * fps);
 
   const totalRatio = visualSequence.reduce(
     (sum, scene) => sum + Math.max(scene.durationRatio || 1, 0.0001),
     0
   );
 
-  let accumulated = 0;
-
-  for (let index = 0; index < visualSequence.length; index++) {
-    const scene = visualSequence[index];
+  const naturalFrames = visualSequence.map((scene) => {
     const ratio = Math.max(scene.durationRatio || 1, 0.0001);
-    const sceneFrames =
-      index === visualSequence.length - 1
-        ? durationInFrames - accumulated
-        : Math.max(1, Math.round((ratio / totalRatio) * durationInFrames));
+    return (ratio / totalRatio) * durationInFrames;
+  });
 
-    const startFrame = accumulated;
-    const endFrame = accumulated + sceneFrames;
+  const flooredFrames = naturalFrames.map((natural, i) =>
+    targetIndices.has(i) ? Math.max(natural, minFrames) : natural
+  );
 
-    if (frame >= startFrame && frame < endFrame) {
-      return {
-        scene,
-        sceneFrame: frame - startFrame,
-        sceneDurationInFrames: sceneFrames,
-      };
+  let extra = 0;
+  for (let i = 0; i < n; i++) {
+    if (targetIndices.has(i)) {
+      extra += Math.max(0, flooredFrames[i] - naturalFrames[i]);
     }
-
-    accumulated = endFrame;
   }
 
-  const lastScene = visualSequence[visualSequence.length - 1];
+  const nonTargetNaturalTotal = naturalFrames.reduce(
+    (sum, val, i) => (targetIndices.has(i) ? sum : sum + val),
+    0
+  );
+
+  const finalFramesFloat = flooredFrames.map((val, i) => {
+    if (targetIndices.has(i)) return val;
+    if (nonTargetNaturalTotal <= 0) return val;
+    const share = naturalFrames[i] / nonTargetNaturalTotal;
+    return Math.max(1, val - extra * share);
+  });
+
+  let accumulated = 0;
+  const scenesWithFrames: {
+    scene: VisualSequenceScene;
+    startFrame: number;
+    sceneFrames: number;
+  }[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const sceneFrames =
+      i === n - 1
+        ? Math.max(1, durationInFrames - accumulated)
+        : Math.max(1, Math.round(finalFramesFloat[i]));
+    scenesWithFrames.push({
+      scene: visualSequence[i],
+      startFrame: accumulated,
+      sceneFrames,
+    });
+    accumulated += sceneFrames;
+  }
+
+  for (const entry of scenesWithFrames) {
+    if (frame >= entry.startFrame && frame < entry.startFrame + entry.sceneFrames) {
+      return {
+        scene: entry.scene,
+        sceneFrame: frame - entry.startFrame,
+        sceneDurationInFrames: entry.sceneFrames,
+      };
+    }
+  }
+
+  const last = scenesWithFrames[scenesWithFrames.length - 1];
   return {
-    scene: lastScene,
+    scene: last.scene,
     sceneFrame: 0,
-    sceneDurationInFrames: durationInFrames,
+    sceneDurationInFrames: last.sceneFrames,
   };
 }
 
@@ -318,22 +219,14 @@ function getSceneImageStyle(
 
   switch (motionPreset) {
     case "zoom-in":
-      return {
-        transform: `scale(${zoomIn})`,
-      };
+      return { transform: `scale(${zoomIn})` };
     case "zoom-out":
-      return {
-        transform: `scale(${zoomOut})`,
-      };
+      return { transform: `scale(${zoomOut})` };
     case "pan":
-      return {
-        transform: `scale(1.05) translateX(${panX}px)`,
-      };
+      return { transform: `scale(1.05) translateX(${panX}px)` };
     case "static":
     default:
-      return {
-        transform: "scale(1)",
-      };
+      return { transform: "scale(1)" };
   }
 }
 
@@ -346,17 +239,16 @@ export const VideoComposition = ({
   placas = [],
   narrativePreset = "titulo-resumen-foto",
   avatarEnabled = true,
-  graphicTitleSize = "md",
-  graphicTitlePosition = "bottom-left",
   subtitleEnabled = true,
-  subtitlePosition = "bottom-center",
-  subtitleSize = "md",
+  subtitleColor = "blanco",
+  category = "General",
+  date = "",
   visualSequence = [],
 }: Props) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
-  const outputFormat = getOutputFormat(width, height);
+  getOutputFormat(width, height);
 
   const fallbackImageSrc =
     image && (image.startsWith("http://") || image.startsWith("https://"))
@@ -367,16 +259,6 @@ export const VideoComposition = ({
     music && (music.startsWith("http://") || music.startsWith("https://"))
       ? music
       : null;
-
-  const titleEntrance = spring({
-    frame,
-    fps,
-    config: {
-      damping: 200,
-      stiffness: 120,
-      mass: 0.9,
-    },
-  });
 
   const musicVolume =
     frame < fps
@@ -393,15 +275,15 @@ export const VideoComposition = ({
   const showAvatarGlobal =
     narrativePreset === "titulo-resumen-foto-avatar" && avatarEnabled;
 
-  const currentSubtitle = subtitleEnabled
-    ? getSubtitleBlockForFrame({
-        text: script,
-        frame,
-        durationInFrames,
-      })
-    : "";
+  const activeMomentos = new Set<Momento>(placas.map((p) => p.momento));
 
-  const currentSceneData = getSceneForFrame(visualSequence, frame, durationInFrames);
+  const currentSceneData = getSceneForFrame(
+    visualSequence,
+    frame,
+    durationInFrames,
+    fps,
+    activeMomentos
+  );
   const currentScene = currentSceneData?.scene ?? null;
   const currentSceneImageSrc =
     currentScene?.asset?.url &&
@@ -411,10 +293,35 @@ export const VideoComposition = ({
       : null;
 
   const effectiveImageSrc = currentSceneImageSrc || fallbackImageSrc;
-  const sceneIndex = currentSceneData ? visualSequence.indexOf(currentSceneData.scene) : 0;
-  const effectiveOverlayTitle = sceneIndex === 0;
-  const effectiveOverlaySubtitles = subtitleEnabled;
+  const sceneIndex = currentSceneData
+    ? visualSequence.indexOf(currentSceneData.scene)
+    : -1;
+  const n = visualSequence.length;
+  const middleIndex = Math.floor((n - 1) / 2);
+
+  let activePlacaMomento: Momento | null = null;
+  if (sceneIndex >= 0) {
+    const candidates: Momento[] = [];
+    if (sceneIndex === 0) candidates.push("inicio");
+    if (n > 0 && sceneIndex === middleIndex) candidates.push("mitad");
+    if (sceneIndex === n - 1) candidates.push("final");
+    for (const c of candidates) {
+      if (activeMomentos.has(c)) {
+        activePlacaMomento = c;
+        break;
+      }
+    }
+  }
+  const currentPlaca = activePlacaMomento
+    ? placas.find((p) => p.momento === activePlacaMomento) ?? null
+    : null;
+
+  const showSinGrafica = subtitleEnabled && !currentPlaca;
   const effectiveOverlayAvatar = showAvatarGlobal;
+
+  const currentSubtitle = showSinGrafica
+    ? getSubtitleBlockForFrame({ text: script, frame, durationInFrames })
+    : "";
 
   const sceneImageStyle = currentSceneData
     ? getSceneImageStyle(
@@ -424,12 +331,16 @@ export const VideoComposition = ({
       )
     : { transform: "scale(1)" };
 
+  const tituloText = currentPlaca?.titulo ?? title;
+  const tituloFontSize = height * tituloFontSizeFrac(tituloText.length);
+  const subtitleHexColor = SUBTITLE_COLORS[subtitleColor] ?? SUBTITLE_COLORS.blanco;
+
   return (
     <AbsoluteFill
       style={{
         backgroundColor: "#020617",
         color: "white",
-        fontFamily: "Arial, sans-serif",
+        fontFamily: barlowCondensedFontFamily,
       }}
     >
       {effectiveImageSrc ? (
@@ -449,7 +360,9 @@ export const VideoComposition = ({
               }}
               startFrom={0}
               muted
-              endAt={currentSceneData ? currentSceneData.sceneDurationInFrames : durationInFrames}
+              endAt={
+                currentSceneData ? currentSceneData.sceneDurationInFrames : durationInFrames
+              }
             />
           ) : (
             <Img
@@ -474,121 +387,154 @@ export const VideoComposition = ({
         />
       )}
 
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(2,6,23,0.25) 0%, rgba(2,6,23,0.58) 65%, rgba(2,6,23,0.82) 100%)",
-        }}
-      />
-
-      {/* Titulos adicionales */}
-      {placas.map((placa, i) => {
-        const startFrame = Math.floor(placa.momento_segundos * fps);
-        const endFrame = Math.floor((placa.momento_segundos + placa.duracion_segundos) * fps);
-        if (frame < startFrame || frame >= endFrame) return null;
-        const relFrame = frame - startFrame;
-        const animFrames = Math.min(fps * 0.5, endFrame - startFrame);
-        const opacity = interpolate(relFrame, [0, animFrames], [0, 1], { extrapolateRight: "clamp" });
-        const translateY = interpolate(relFrame, [0, animFrames], [40, 0], { extrapolateRight: "clamp" });
-        const isTop = placa.posicion === "top";
-        const placaStyle = isTop
-          ? { position: "absolute" as const, top: 0, left: 0, zIndex: 50, padding: 40, display: "flex", alignItems: "flex-start" as const }
-          : { position: "absolute" as const, top: 0, bottom: 0, left: 0, right: 0, zIndex: 50, padding: 40, display: "flex", alignItems: "center" as const, justifyContent: "flex-start" as const };
-        return (
-          <div
-            key={i}
-            style={{
-              ...placaStyle,
-              opacity,
-              transform: `translateY(${translateY}px)`,
-              zIndex: 50,
-            }}
-          >
-            <p
-              style={{
-                color: "white",
-                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
-                fontWeight: 800,
-                lineHeight: 1.05,
-                fontFamily: "sans-serif",
-                textShadow: "0 2px 12px rgba(0,0,0,0.7)",
-                maxWidth: getTitleBoxWidth(outputFormat),
-              }}
-            >
-              {placa.texto}
-            </p>
-          </div>
-        );
-      })}
+      {currentPlaca ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: height * LAYOUT.glowTopFrac,
+            background:
+              "radial-gradient(130% 85% at 50% 135%, #F114CD 0%, #870AAD 38%, rgba(63,12,52,.55) 58%, rgba(0,0,0,0) 78%)",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "38%",
+            background:
+              "linear-gradient(to top, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 100%)",
+          }}
+        />
+      )}
 
       {musicSrc ? <Audio src={musicSrc} volume={voiceover ? 0.08 : musicVolume} /> : null}
       {voiceover ? <Audio src={voiceover} volume={1} /> : null}
       {effectiveOverlayAvatar ? <AvatarWindow /> : null}
 
-      {effectiveOverlayTitle ? (
+      {currentPlaca ? (
         <div
           style={{
-            ...getTitlePositionStyle({
-              position: graphicTitlePosition,
-              subtitleEnabled: effectiveOverlaySubtitles,
-              subtitlePosition,
-              outputFormat,
-            }),
-            transform: `translateY(${(1 - titleEntrance) * 24}px)`,
-            opacity: titleEntrance,
+            position: "absolute",
+            top: height * LAYOUT.blockTopFrac,
+            left: width * LAYOUT.blockLeftFrac,
+            right: width * LAYOUT.blockRightFrac,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          <div style={{ maxWidth: getTitleBoxWidth(outputFormat) }}>
+                    {currentPlaca.momento === "inicio" ? (
             <div
               style={{
-                display: "inline-flex",
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.15)",
-                padding: "8px 12px",
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                backdropFilter: "blur(8px)",
+                display: "flex",
+                alignItems: "center",
+                gap: width * LAYOUT.badgeGapFrac,
+                marginBottom: height * LAYOUT.badgeToTituloGapFrac,
               }}
             >
-              título
+              <span
+                style={{
+                  width: height * LAYOUT.badgeDotFrac,
+                  height: height * LAYOUT.badgeDotFrac,
+                  borderRadius: "50%",
+                  background: "#FF221B",
+                  flexShrink: 0,
+                  position: "relative",
+                  top: -(height * LAYOUT.badgeDotOffsetFrac),
+                }}
+              />
+              <span
+                style={{
+                  color: "#fff",
+                  fontFamily: barlowCondensedFontFamily,
+                  fontWeight: 600,
+                  fontSize: height * LAYOUT.categoriaFontFrac,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                }}
+              >
+                {category}
+              </span>
+              <span style={{ flex: 1 }} />
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.65)",
+                  fontFamily: barlowCondensedFontFamily,
+                  fontWeight: 500,
+                  fontSize: height * LAYOUT.fechaFontFrac,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {date}
+              </span>
             </div>
+          ) : null}
 
-            <div
-              style={{
-                marginTop: 14,
-                fontWeight: 700,
-                fontSize: getTitleFontSize(outputFormat, graphicTitleSize),
-                lineHeight:
-                  outputFormat === "9:16" ? 1.08 : outputFormat === "1:1" ? 1.06 : 1.05,
-                textShadow: "0 3px 18px rgba(0,0,0,0.35)",
-              }}
-            >
-              {title}
-            </div>
-          </div>
+          <h1
+            style={{
+              margin: 0,
+              color: "#fff",
+              fontFamily: oswaldFontFamily,
+              fontWeight: 700,
+              fontSize: tituloFontSize,
+              lineHeight: 1.08,
+              textTransform: "uppercase",
+              textAlign: "left",
+              whiteSpace: "pre-line",
+            }}
+          >
+            {tituloText}
+          </h1>
         </div>
       ) : null}
 
-      {effectiveOverlaySubtitles && currentSubtitle ? (
-        <div style={getSubtitlePositionStyle(subtitlePosition)}>
-          <div
+      {showSinGrafica ? (
+        <div
+          style={{
+            position: "absolute",
+            left: width * LAYOUT.moscaLeftFrac,
+            top: height * LAYOUT.moscaTopFrac,
+            writingMode: "vertical-rl",
+            transform: "rotate(180deg)",
+            color: "#fff",
+            fontFamily: manropeFontFamily,
+            fontWeight: 800,
+            fontSize: height * LAYOUT.moscaFontFrac,
+            letterSpacing: 1,
+          }}
+        >
+          Rollin News
+        </div>
+      ) : null}
+
+      {showSinGrafica && currentSubtitle ? (
+        <div
+          style={{
+            position: "absolute",
+            left: width * LAYOUT.subtituloLeftFrac,
+            right: width * LAYOUT.subtituloRightFrac,
+            bottom: height * LAYOUT.subtituloBottomFrac,
+            textAlign: "center",
+          }}
+        >
+          <span
             style={{
-              maxWidth: getSubtitleBoxWidth(outputFormat),
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(0,0,0,0.78)",
-              padding: "12px 16px",
-              fontWeight: 600,
-              fontSize: getSubtitleFontSize(outputFormat, subtitleSize),
-              lineHeight: 1.25,
-              textAlign: "center",
-              boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
+              color: subtitleHexColor,
+              fontFamily: manropeFontFamily,
+              fontWeight: 800,
+              fontSize: height * LAYOUT.subtituloFontFrac,
+              lineHeight: 1.3,
+              textTransform: "uppercase",
+              textShadow: "0 2px 10px rgba(0,0,0,0.65)",
             }}
           >
             {currentSubtitle}
-          </div>
+          </span>
         </div>
       ) : null}
     </AbsoluteFill>

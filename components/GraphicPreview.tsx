@@ -1,17 +1,28 @@
+﻿"use client";
+
+import { useEffect, useState } from "react";
 import { buildSubtitleBlocks } from "@/lib/subtitles";
+import { LAYOUT, SUBTITLE_COLORS, tituloFontSizeFrac } from "@/lib/graphicLayout";
+import type { Momento } from "@/lib/graphicLayout";
+
+type Placa = {
+  titulo: string;
+  antetitulo?: string | null;
+  momento: Momento;
+};
 
 type Props = {
+  projectId: string;
   title: string;
   imageUrl: string;
   outputFormat: string;
   narrativePreset: string;
-  graphicTitleSize?: string | null;
-  graphicTitlePosition?: string | null;
   avatarEnabled?: boolean | null;
   subtitleEnabled?: boolean | null;
-  subtitlePosition?: string | null;
-  subtitleSize?: string | null;
+  subtitleColor?: string | null;
   subtitleText?: string | null;
+  category?: string | null;
+  date?: string | null;
 };
 
 function getAspectClass(outputFormat: string) {
@@ -26,178 +37,61 @@ function getAspectClass(outputFormat: string) {
   }
 }
 
-function getEffectiveTitleSize(
-  _outputFormat: string,
-  requestedSize?: string | null
-) {
-  return requestedSize || "md";
-}
-
-function getTitleSizeClass(
-  outputFormat: string,
-  requestedSize?: string | null
-) {
-  const size = getEffectiveTitleSize(outputFormat, requestedSize);
-
-  if (outputFormat === "9:16") {
-    switch (size) {
-      case "sm":
-        return "text-xl leading-tight";
-      case "lg":
-        return "text-5xl leading-[1.03]";
-      case "md":
-      default:
-        return "text-4xl leading-[1.04]";
-    }
-  }
-
-  if (outputFormat === "1:1") {
-    switch (size) {
-      case "sm":
-        return "text-xl leading-tight";
-      case "lg":
-        return "text-4xl leading-[1.02]";
-      case "md":
-      default:
-        return "text-3xl leading-[1.04]";
-    }
-  }
-
-  switch (size) {
-    case "sm":
-      return "text-base md:text-xl leading-tight";
-    case "lg":
-      return "text-2xl md:text-4xl leading-[1.02]";
-    case "md":
-    default:
-      return "text-xl md:text-3xl leading-[1.05]";
-  }
-}
-
-function getSubtitleSizeClass(
-  outputFormat: string,
-  size?: string | null
-) {
-  if (outputFormat === "9:16") {
-    switch (size) {
-      case "sm":
-        return "text-[10px]";
-      case "lg":
-        return "text-sm";
-      case "md":
-      default:
-        return "text-xs";
-    }
-  }
-
-  switch (size) {
-    case "sm":
-      return "text-[10px] md:text-xs";
-    case "lg":
-      return "text-sm md:text-base";
-    case "md":
-    default:
-      return "text-xs md:text-sm";
-  }
-}
-
-function getTitlePositionClasses(
-  position?: string | null,
-  subtitleEnabled?: boolean | null,
-  subtitlePosition?: string | null
-) {
-  const subtitleAtBottom =
-    subtitleEnabled &&
-    (subtitlePosition === "bottom-left" ||
-      subtitlePosition === "bottom-center" ||
-      subtitlePosition === "bottom-right" ||
-      !subtitlePosition);
-
-  switch (position) {
-    case "top-left":
-      return "left-0 top-0 items-start p-4 md:p-5";
-    case "top-center":
-      return "inset-x-0 top-0 items-center p-4 md:p-5";
-    case "top-right":
-      return "right-0 top-0 items-end p-4 md:p-5";
-    case "bottom-center":
-      return subtitleAtBottom
-        ? "inset-x-0 bottom-16 items-center p-4 md:p-5"
-        : "inset-x-0 bottom-0 items-center p-4 md:p-5";
-    case "bottom-right":
-      return subtitleAtBottom
-        ? "right-0 bottom-16 items-end p-4 md:p-5"
-        : "right-0 bottom-0 items-end p-4 md:p-5";
-    case "bottom-left":
-    default:
-      return subtitleAtBottom
-        ? "left-0 bottom-16 items-start p-4 md:p-5"
-        : "left-0 bottom-0 items-start p-4 md:p-5";
-  }
-}
-
-function getSubtitlePositionClasses(position?: string | null) {
-  switch (position) {
-    case "top-left":
-      return "left-4 top-4 justify-start";
-    case "top-center":
-      return "inset-x-0 top-4 justify-center px-4";
-    case "top-right":
-      return "right-4 top-4 justify-end";
-    case "middle-center":
-      return "inset-x-0 top-1/2 -translate-y-1/2 justify-center px-4";
-    case "bottom-left":
-      return "left-4 bottom-3 justify-start";
-    case "bottom-right":
-      return "right-4 bottom-3 justify-end";
-    case "bottom-center":
-    default:
-      return "inset-x-0 bottom-3 justify-center px-4";
-  }
-}
-
-function getTitleWidthClass(outputFormat: string) {
+// Dimensiones de referencia de cada formato de preview (coinciden con los
+// max-width de arriba). Se usan solo para calcular las medidas de LAYOUT en
+// pixeles concretos, no afectan el tamano real del video exportado.
+function getPreviewDimensions(outputFormat: string) {
   switch (outputFormat) {
     case "9:16":
-      return "max-w-[78%]";
+      return { width: 280, height: (280 * 16) / 9 };
     case "1:1":
-      return "max-w-[82%]";
+      return { width: 420, height: 420 };
     case "16:9":
     default:
-      return "max-w-[72%]";
-  }
-}
-
-function getSubtitleWidthClass(outputFormat: string) {
-  switch (outputFormat) {
-    case "9:16":
-      return "max-w-[78%]";
-    case "1:1":
-      return "max-w-[82%]";
-    case "16:9":
-    default:
-      return "max-w-[62%]";
+      return { width: 560, height: (560 * 9) / 16 };
   }
 }
 
 export default function GraphicPreview({
+  projectId,
   title,
   imageUrl,
   outputFormat,
   narrativePreset,
-  graphicTitleSize,
-  graphicTitlePosition,
   avatarEnabled,
   subtitleEnabled,
-  subtitlePosition,
-  subtitleSize,
+  subtitleColor,
   subtitleText,
+  category,
+  date,
 }: Props) {
+  const [placas, setPlacas] = useState<Placa[]>([]);
+  const [placasLoaded, setPlacasLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/projects/${projectId}/placas`)
+      .then((r) => r.json())
+      .then((json) => setPlacas(json.placas ?? []))
+      .catch(() => setPlacas([]))
+      .finally(() => setPlacasLoaded(true));
+  }, [projectId]);
+
   const showAvatar =
     narrativePreset === "titulo-resumen-foto-avatar" && Boolean(avatarEnabled);
 
+  const inicioPlaca = placas.find((p) => p.momento === "inicio") ?? null;
+
   const subtitleBlocks = buildSubtitleBlocks(subtitleText);
   const previewSubtitle = subtitleBlocks[0] || "";
+  const subtitleHexColor =
+    SUBTITLE_COLORS[subtitleColor || "blanco"] ?? SUBTITLE_COLORS.blanco;
+
+  const { width, height } = getPreviewDimensions(outputFormat);
+
+  const tituloText = inicioPlaca?.titulo || title || "Titulo del proyecto";
+  const tituloFontSize = height * tituloFontSizeFrac(tituloText.length);
+
+  const showSinGrafica = placasLoaded && Boolean(subtitleEnabled) && !inicioPlaca;
 
   return (
     <div className="space-y-4">
@@ -209,14 +103,38 @@ export default function GraphicPreview({
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt="Preview gráfica"
+            alt="Preview grafica"
             className="h-full w-full object-cover"
           />
         ) : (
           <div className="h-full w-full bg-slate-900" />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/75" />
+        {placasLoaded && inicioPlaca ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: height * LAYOUT.glowTopFrac,
+              background:
+                "radial-gradient(130% 85% at 50% 135%, #F114CD 0%, #870AAD 38%, rgba(63,12,52,.55) 58%, rgba(0,0,0,0) 78%)",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: "38%",
+              background:
+                "linear-gradient(to top, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 100%)",
+            }}
+          />
+        )}
 
         {showAvatar ? (
           <div className="absolute right-4 top-4 z-20 h-24 w-20 rounded-2xl border border-white/20 bg-slate-800/90 shadow-lg md:h-28 md:w-24">
@@ -226,45 +144,117 @@ export default function GraphicPreview({
           </div>
         ) : null}
 
-        <div
-          className={`absolute z-10 flex max-w-full ${getTitlePositionClasses(
-            graphicTitlePosition,
-            subtitleEnabled,
-            subtitlePosition
-          )}`}
-        >
-          <div className={getTitleWidthClass(outputFormat)}>
-            <div className="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-white/85 backdrop-blur">
-              preview gráfica
+        {placasLoaded && inicioPlaca ? (
+          <div
+            style={{
+              position: "absolute",
+              top: height * LAYOUT.blockTopFrac,
+              left: width * LAYOUT.blockLeftFrac,
+              right: width * LAYOUT.blockRightFrac,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+                        <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: width * LAYOUT.badgeGapFrac,
+                marginBottom: height * LAYOUT.badgeToTituloGapFrac,
+              }}
+            >
+              <span
+                style={{
+                  width: height * LAYOUT.badgeDotFrac,
+                  height: height * LAYOUT.badgeDotFrac,
+                  borderRadius: "50%",
+                  background: "#FF221B",
+                  flexShrink: 0,
+                  position: "relative",
+                  top: -(height * LAYOUT.badgeDotOffsetFrac),
+                }}
+              />
+              <span
+                style={{
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: height * LAYOUT.categoriaFontFrac,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                }}
+              >
+                {category || "General"}
+              </span>
+              <span style={{ flex: 1 }} />
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.65)",
+                  fontWeight: 500,
+                  fontSize: height * LAYOUT.fechaFontFrac,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {date || ""}
+              </span>
             </div>
 
             <h3
-              className={`mt-3 font-semibold text-white ${getTitleSizeClass(
-                outputFormat,
-                graphicTitleSize
-              )}`}
+              style={{
+                margin: 0,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: tituloFontSize,
+                lineHeight: 1.08,
+                textTransform: "uppercase",
+                textAlign: "left",
+                whiteSpace: "pre-line",
+              }}
             >
-              {title || "Título del proyecto"}
+              {tituloText}
             </h3>
           </div>
-        </div>
+        ) : null}
 
-        {subtitleEnabled && previewSubtitle ? (
+        {showSinGrafica ? (
           <div
-            className={`absolute z-30 flex ${getSubtitlePositionClasses(
-              subtitlePosition
-            )}`}
+            style={{
+              position: "absolute",
+              left: width * LAYOUT.moscaLeftFrac,
+              top: height * LAYOUT.moscaTopFrac,
+              writingMode: "vertical-rl",
+              transform: "rotate(180deg)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: height * LAYOUT.moscaFontFrac,
+              letterSpacing: 1,
+            }}
           >
-            <div
-              className={`${getSubtitleWidthClass(
-                outputFormat
-              )} rounded-lg border border-white/15 bg-black/75 px-3 py-1.5 text-center font-medium text-white shadow-lg ${getSubtitleSizeClass(
-                outputFormat,
-                subtitleSize
-              )}`}
+            Rollin News
+          </div>
+        ) : null}
+
+        {showSinGrafica && previewSubtitle ? (
+          <div
+            style={{
+              position: "absolute",
+              left: width * LAYOUT.subtituloLeftFrac,
+              right: width * LAYOUT.subtituloRightFrac,
+              bottom: height * LAYOUT.subtituloBottomFrac,
+              textAlign: "center",
+            }}
+          >
+            <span
+              style={{
+                color: subtitleHexColor,
+                fontWeight: 800,
+                fontSize: height * LAYOUT.subtituloFontFrac,
+                lineHeight: 1.3,
+                textTransform: "uppercase",
+                textShadow: "0 2px 10px rgba(0,0,0,0.65)",
+              }}
             >
               {previewSubtitle}
-            </div>
+            </span>
           </div>
         ) : null}
       </div>

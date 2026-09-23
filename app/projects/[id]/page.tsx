@@ -93,14 +93,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     project.editorial_profile ?? project.category ?? "explicativo";
   const effectiveNarrativePreset =
     project.narrative_preset ?? "titulo-resumen-foto";
-  const effectiveGraphicTitleSize = project.graphic_title_size ?? "md";
-  const effectiveGraphicTitlePosition =
-    project.graphic_title_position ?? "bottom-left";
   const effectiveAvatarEnabled = project.avatar_enabled ?? true;
   const effectiveSubtitleEnabled = project.subtitle_enabled ?? true;
-  const effectiveSubtitlePosition = project.subtitle_position ?? "bottom-center";
-  const effectiveSubtitleSize = project.subtitle_size ?? "md";
   const effectiveSubtitleColor = project.subtitle_color ?? "blanco";
+  const effectiveCategory = project.editorial_profile ?? "General";
+  const effectiveDate = (() => {
+    const iso = project.created_at;
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}.${mm}.${yyyy}`;
+  })();
 
   // Usar la primera imagen de la secuencia visual como portada
   const { data: firstSceneRows } = await supabaseAdmin
@@ -211,14 +217,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         initialStatus={project.status}
         imageUrl={previewImageUrl}
         narrativePreset={effectiveNarrativePreset}
-        graphicTitleSize={effectiveGraphicTitleSize}
-        graphicTitlePosition={effectiveGraphicTitlePosition}
         avatarEnabled={effectiveAvatarEnabled}
         subtitleEnabled={effectiveSubtitleEnabled}
-        subtitlePosition={effectiveSubtitlePosition}
-        subtitleSize={effectiveSubtitleSize}
         subtitleColor={effectiveSubtitleColor}
         subtitleText={previewSubtitleText}
+        category={effectiveCategory}
+        date={effectiveDate}
       />
     </div>
   );
